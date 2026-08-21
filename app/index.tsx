@@ -18,7 +18,8 @@ import {
   View,
 } from 'react-native';
 
-import { TaskCard } from '../components/TaskCard';
+import { TaskCard } from '@/components/TaskCard';
+import { TaskModal } from '@/components/TaskModal';
 import { useTaskStore } from '../store/taskStore';
 import type { Screen } from '../types/task';
 import { getVisibleTasks } from '../utils/taskFilters';
@@ -85,6 +86,21 @@ export default function HomeScreen() {
 
   const reverseOrder = useTaskStore(
     (state) => state.reverseOrder,
+  );
+
+  const selectedTaskId = useTaskStore(
+    (state) => state.selectedTaskId,
+  );
+
+  const selectedTask = useTaskStore(
+    (state) =>
+      state.tasks.find(
+        (task) => task.id === selectedTaskId,
+      ) ?? null,
+  );
+
+  const reopenTask = useTaskStore(
+    (state) => state.reopenTask,
   );
 
   const setScreen = useTaskStore(
@@ -371,6 +387,29 @@ export default function HomeScreen() {
           );
         })}
       </View>
+      <TaskModal
+        task={selectedTask}
+        visible={selectedTask !== null}
+        onClose={() =>
+          setSelectedTaskId(null)
+        }
+        onComplete={() => {
+          if (!selectedTask) {
+            return;
+          }
+
+          completeTask(selectedTask.id);
+          setSelectedTaskId(null);
+        }}
+        onReopen={() => {
+          if (!selectedTask) {
+            return;
+          }
+
+          reopenTask(selectedTask.id);
+          setSelectedTaskId(null);
+        }}
+      />
     </SafeAreaView>
   );
 }
