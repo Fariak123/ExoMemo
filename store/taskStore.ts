@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -89,7 +90,7 @@ export const useTaskStore = create<TaskStore>()(
         const now = new Date().toISOString();
 
         const task: Task = {
-          id: crypto.randomUUID(),
+          id: Crypto.randomUUID(),
 
           type: input.type,
 

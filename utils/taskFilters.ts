@@ -1,8 +1,8 @@
 import type {
-    Priority,
-    Screen,
-    Task,
-    TypeFilter,
+  Priority,
+  Screen,
+  Task,
+  TypeFilter,
 } from '../types/task';
 
 interface GetVisibleTasksParams {
@@ -60,6 +60,8 @@ export function getVisibleTasks({
 
   if (screen === 'today') {
     result = result.filter((task) => {
+      // Completed task:
+      // show only if it was completed today.
       if (task.completed) {
         if (!task.completedAt) {
           return false;
@@ -71,6 +73,8 @@ export function getVisibleTasks({
         );
       }
 
+      // Ongoing task:
+      // show only if its deadline is today.
       if (!task.hasDeadline || !task.deadline) {
         return false;
       }

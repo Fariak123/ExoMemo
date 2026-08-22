@@ -3,6 +3,7 @@ import {
     Check,
     Clock3,
 } from 'lucide-react-native';
+
 import {
     Pressable,
     StyleSheet,
@@ -64,9 +65,7 @@ function formatDeadline(
     return 'No deadline';
   }
 
-  const date = new Date(deadline);
-
-  return date.toLocaleString([], {
+  return new Date(deadline).toLocaleString([], {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -75,19 +74,70 @@ function formatDeadline(
   });
 }
 
+function getPriorityStyle(
+  priority: Task['priority'],
+) {
+  switch (priority) {
+    case 'high':
+      return {
+        backgroundColor:
+          'rgba(240, 107, 107, 0.14)',
+      };
+
+    case 'medium':
+      return {
+        backgroundColor:
+          'rgba(230, 199, 106, 0.14)',
+      };
+
+    default:
+      return {
+        backgroundColor:
+          'rgba(143, 184, 255, 0.12)',
+      };
+  }
+}
+
+function getPriorityTextStyle(
+  priority: Task['priority'],
+) {
+  switch (priority) {
+    case 'high':
+      return {
+        color: colors.red,
+      };
+
+    case 'medium':
+      return {
+        color: colors.yellow,
+      };
+
+    default:
+      return {
+        color: colors.accent,
+      };
+  }
+}
+
 export function TaskCard({
   task,
   onPress,
   onComplete,
 }: TaskCardProps) {
   const status = getDeadlineStatus(task);
-  const statusColor = getStatusColor(status);
+
+  // Completed tasks should not show a deadline warning.
+  // Today specifically wants an ongoing task to have a red line.
+  const statusColor = task.completed
+    ? colors.border
+    : getStatusColor(status);
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        task.completed && styles.completedCard,
         pressed && styles.cardPressed,
       ]}
     >
@@ -104,7 +154,11 @@ export function TaskCard({
         <View style={styles.header}>
           <View style={styles.titleArea}>
             <Text
-              style={styles.title}
+              style={[
+                styles.title,
+                task.completed &&
+                  styles.completedTitle,
+              ]}
               numberOfLines={2}
             >
               {task.title}
@@ -120,14 +174,25 @@ export function TaskCard({
           <Pressable
             onPress={(event) => {
               event.stopPropagation();
-              onComplete();
+
+              if (!task.completed) {
+                onComplete();
+              }
             }}
-            style={styles.completeButton}
+            style={[
+              styles.completeButton,
+              task.completed &&
+                styles.completedButton,
+            ]}
             hitSlop={8}
           >
             <Check
               size={18}
-              color={colors.secondary}
+              color={
+                task.completed
+                  ? colors.accent
+                  : colors.secondary
+              }
             />
           </Pressable>
         </View>
@@ -151,7 +216,9 @@ export function TaskCard({
                 />
 
                 <Text style={styles.metaText}>
-                  {formatDeadline(task.deadline)}
+                  {formatDeadline(
+                    task.deadline,
+                  )}
                 </Text>
               </>
             ) : (
@@ -193,48 +260,6 @@ export function TaskCard({
   );
 }
 
-function getPriorityStyle(
-  priority: Task['priority'],
-) {
-  switch (priority) {
-    case 'high':
-      return {
-        backgroundColor: 'rgba(240, 107, 107, 0.14)',
-      };
-
-    case 'medium':
-      return {
-        backgroundColor: 'rgba(230, 199, 106, 0.14)',
-      };
-
-    default:
-      return {
-        backgroundColor: 'rgba(143, 184, 255, 0.12)',
-      };
-  }
-}
-
-function getPriorityTextStyle(
-  priority: Task['priority'],
-) {
-  switch (priority) {
-    case 'high':
-      return {
-        color: colors.red,
-      };
-
-    case 'medium':
-      return {
-        color: colors.yellow,
-      };
-
-    default:
-      return {
-        color: colors.accent,
-      };
-  }
-}
-
 const styles = StyleSheet.create({
   card: {
     minHeight: 140,
@@ -251,8 +276,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
+  completedCard: {
+    opacity: 0.72,
+  },
+
   cardPressed: {
-    opacity: 0.75,
+    opacity: 0.55,
   },
 
   statusLine: {
@@ -281,11 +310,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  completedTitle: {
+    textDecorationLine: 'line-through',
+    color: colors.secondary,
+  },
+
   type: {
     marginTop: 4,
+
     color: colors.muted,
+
     fontSize: 12,
     fontWeight: '500',
+
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
@@ -303,10 +340,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  completedButton: {
+    backgroundColor:
+      'rgba(143, 184, 255, 0.1)',
+    borderColor: colors.accent,
+  },
+
   description: {
     marginTop: 12,
 
     color: colors.secondary,
+
     fontSize: 14,
     lineHeight: 20,
   },
@@ -332,6 +376,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
 
     color: colors.secondary,
+
     fontSize: 12,
   },
 

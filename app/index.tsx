@@ -20,6 +20,8 @@ import {
 
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
+import React from 'react';
+import { AddTaskModal } from '../components/AddTaskModal';
 import { useTaskStore } from '../store/taskStore';
 import type { Screen } from '../types/task';
 import { getVisibleTasks } from '../utils/taskFilters';
@@ -60,6 +62,8 @@ const screens: {
 ];
 
 export default function HomeScreen() {
+
+  const [addModalVisible, setAddModalVisible] = React.useState(false);
   const tasks = useTaskStore(
     (state) => state.tasks,
   );
@@ -97,6 +101,10 @@ export default function HomeScreen() {
       state.tasks.find(
         (task) => task.id === selectedTaskId,
       ) ?? null,
+  );
+
+  const addTask = useTaskStore(
+    (state) => state.addTask,
   );
 
   const reopenTask = useTaskStore(
@@ -296,7 +304,7 @@ export default function HomeScreen() {
                 ? 'Ongoing'
                 : screen === 'today'
                   ? 'Today'
-                  : 'History'}
+                  : 'Completed'}
             </Text>
 
             <Text style={styles.sectionSubtitle}>
@@ -348,10 +356,7 @@ export default function HomeScreen() {
               bottom: BOTTOM_BAR_HEIGHT + FAB_SIZE / 2 + FAB_BOTTOM_OFFSET
             }
           ]}
-          onPress={() => {
-            // Add Task modal comes next.
-            reset()
-          }}
+          onPress={() => setAddModalVisible(true)}
         >
           <Plus
             size={28}
@@ -387,6 +392,16 @@ export default function HomeScreen() {
           );
         })}
       </View>
+      <AddTaskModal
+        visible={addModalVisible}
+        onClose={() =>
+          setAddModalVisible(false)
+        }
+        onAdd={(data) => {
+          addTask(data);
+          setAddModalVisible(false);
+        }}
+      />
       <TaskModal
         task={selectedTask}
         visible={selectedTask !== null}
