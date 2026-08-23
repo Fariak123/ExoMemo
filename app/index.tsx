@@ -184,14 +184,6 @@ export default function HomeScreen() {
     reverseOrder,
   });
 
-  const historyEditMode = useTaskStore(
-    (state) => state.historyEditMode,
-  );
-
-  const setHistoryEditMode = useTaskStore(
-    (state) => state.setHistoryEditMode,
-  );
-
   const deleteTask = useTaskStore(
     (state) => state.deleteTask,
   );
@@ -337,23 +329,6 @@ export default function HomeScreen() {
               </Text>
             </Pressable>
           </View>
-
-          {screen === 'history' && (
-            <Pressable
-              style={styles.editButton}
-              onPress={() =>
-                setHistoryEditMode(
-                  !historyEditMode,
-                )
-              }
-            >
-              <Text style={styles.editButtonText}>
-                {historyEditMode
-                  ? 'Done'
-                  : 'Edit'}
-              </Text>
-            </Pressable>
-          )}
 
           <Pressable
             style={styles.iconButton}
@@ -518,16 +493,12 @@ export default function HomeScreen() {
                     <TaskCard
                       key={task.id}
                       task={task}
-                      editMode={historyEditMode}
                       onPress={() =>
                         setSelectedTaskId(task.id)
                       }
                       onComplete={() =>
                         completeTask(task.id)
                       }
-                      onDelete={() => {
-                        deleteTask(task.id);
-                      }}
                     />
                   ))}
                 </View>
@@ -593,10 +564,6 @@ export default function HomeScreen() {
               style={styles.bottomItem}
               onPress={() => {
                 setScreen(item.id);
-
-                if (item.id !== 'history') {
-                  setHistoryEditMode(false);
-                }
               }}
             >
               <Text
@@ -679,10 +646,7 @@ export default function HomeScreen() {
             return;
           }
 
-          await deleteTask(
-            selectedTask.id,
-          );
-
+          await deleteTask(selectedTask.id);
           setSelectedTaskId(null);
         }}
       />
@@ -902,22 +866,6 @@ const styles = StyleSheet.create({
 
   bottomTextActive: {
     color: colors.text,
-    fontWeight: '700',
-  },
-
-  editButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-
-    borderRadius: 8,
-
-    backgroundColor: colors.elevated,
-  },
-
-  editButtonText: {
-    color: colors.text,
-
-    fontSize: 12,
     fontWeight: '700',
   },
 

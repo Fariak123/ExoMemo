@@ -28,8 +28,6 @@ interface TaskStore {
   priorityFilter: Priority | 'all';
   reverseOrder: boolean;
 
-  historyEditMode: boolean;
-
   selectedTaskId: string | null;
 
   // -------------------------
@@ -95,14 +93,6 @@ interface TaskStore {
 
   setSearchQuery: (
     query: string,
-  ) => void;
-
-  // -------------------------
-  // History
-  // -------------------------
-
-  setHistoryEditMode: (
-    value: boolean,
   ) => void;
 
   // -------------------------
@@ -372,12 +362,6 @@ export const useTaskStore =
 
             searchOpen: false,
             searchQuery: '',
-
-            historyEditMode:
-              screen === 'history'
-                ? get()
-                    .historyEditMode
-                : false,
           });
         },
 
@@ -425,18 +409,6 @@ export const useTaskStore =
           searchQuery,
         ) => {
           set({ searchQuery });
-        },
-
-        // =================================
-        // HISTORY
-        // =================================
-
-        setHistoryEditMode: (
-          historyEditMode,
-        ) => {
-          set({
-            historyEditMode,
-          });
         },
 
         // =================================

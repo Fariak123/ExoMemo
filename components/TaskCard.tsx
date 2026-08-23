@@ -1,8 +1,7 @@
 import {
     CalendarDays,
     Check,
-    Clock3,
-    Trash2,
+    Clock3
 } from 'lucide-react-native';
 
 import {
@@ -40,7 +39,6 @@ interface TaskCardProps {
   onPress: () => void;
   onComplete: () => void;
   editMode?: boolean;
-  onDelete?: () => void;
 }
 
 function getStatusColor(
@@ -126,8 +124,6 @@ export function TaskCard({
   task,
   onPress,
   onComplete,
-  editMode = false,
-  onDelete,
 }: TaskCardProps) {
   const status = getDeadlineStatus(task);
 
@@ -176,46 +172,31 @@ export function TaskCard({
             </Text>
           </View>
 
-          {editMode ? (
-            <Pressable
-                onPress={(event) => {
-                event.stopPropagation();
-                onDelete?.();
-                }}
-                style={styles.deleteButton}
-                hitSlop={8}
-            >
-                <Trash2
-                size={18}
-                color={colors.red}
-                />
-            </Pressable>
-            ) : (
-            <Pressable
-                onPress={(event) => {
-                event.stopPropagation();
+          <Pressable
+            onPress={(event) => {
+              event.stopPropagation();
 
-                if (!task.completed) {
-                    onComplete();
-                }
-                }}
-                style={[
-                styles.completeButton,
-                task.completed &&
-                    styles.completedButton,
-                ]}
-                hitSlop={8}
-            >
-                <Check
-                size={18}
-                color={
-                    task.completed
-                    ? colors.accent
-                    : colors.secondary
-                }
-                />
-            </Pressable>
-            )}
+              if (!task.completed) {
+                onComplete();
+              }
+            }}
+            style={[
+              styles.completeButton,
+              task.completed &&
+                styles.completedButton,
+            ]}
+            hitSlop={8}
+          >
+            <Check
+              size={18}
+              color={
+                task.completed
+                ? colors.accent
+                : colors.secondary
+              }
+            />
+          </Pressable>
+            
         </View>
 
         {task.description.length > 0 && (

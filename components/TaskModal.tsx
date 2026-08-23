@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
 import {
+    AlertTriangle,
     CalendarDays,
     Check,
     Clock3,
     Edit3,
-    X,
+    X
 } from 'lucide-react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -67,6 +68,9 @@ export function TaskModal({
   onSave,
   onDelete,
 }: TaskModalProps) {
+  const [confirmDelete, setConfirmDelete] =
+    useState(false);
+
   const [editing, setEditing] =
     useState(false);
 
@@ -88,6 +92,14 @@ export function TaskModal({
 
   const [showPicker, setShowPicker] =
     useState(false);
+
+  const handleClose = () => {
+    setEditing(false);
+    setShowPicker(false);
+    setConfirmDelete(false);
+
+    onClose();
+  };
 
   useEffect(() => {
     if (!task) {
@@ -158,12 +170,6 @@ export function TaskModal({
     setShowPicker(false);
   };
 
-  const handleClose = () => {
-    setEditing(false);
-    setShowPicker(false);
-    onClose();
-  };
-
   return (
     <Modal
       visible={visible}
@@ -173,6 +179,52 @@ export function TaskModal({
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
+          {confirmDelete && (
+            <View style={styles.confirmOverlay}>
+                <View style={styles.confirmModal}>
+                <View style={styles.confirmIcon}>
+                    <AlertTriangle
+                    size={24}
+                    color={colors.red}
+                    />
+                </View>
+
+                <Text style={styles.confirmTitle}>
+                    Delete task?
+                </Text>
+
+                <Text style={styles.confirmMessage}>
+                    "{task.title}" will be permanently
+                    deleted.
+                </Text>
+
+                <View style={styles.confirmActions}>
+                    <Pressable
+                    style={styles.confirmCancel}
+                    onPress={() =>
+                        setConfirmDelete(false)
+                    }
+                    >
+                    <Text style={styles.confirmCancelText}>
+                        Cancel
+                    </Text>
+                    </Pressable>
+
+                    <Pressable
+                    style={styles.confirmDelete}
+                    onPress={async () => {
+                        setConfirmDelete(false);
+                        await onDelete();
+                    }}
+                    >
+                    <Text style={styles.confirmDeleteText}>
+                        Delete
+                    </Text>
+                    </Pressable>
+                </View>
+                </View>
+            </View>
+            )}
           {/* HEADER */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -744,16 +796,12 @@ export function TaskModal({
                 )}
 
                 <Pressable
-                  onPress={onDelete}
-                  style={
-                    styles.deleteButton
+                  onPress={() =>
+                    setConfirmDelete(true)
                   }
+                  style={styles.deleteButton}
                 >
-                  <Text
-                    style={
-                      styles.deleteText
-                    }
-                  >
+                  <Text style={styles.deleteText}>
                     Delete task
                   </Text>
                 </Pressable>
@@ -1225,5 +1273,120 @@ const styles = StyleSheet.create({
 
     fontSize: 14,
     fontWeight: '700',
+  },
+
+  confirmOverlay: {
+  position: 'absolute',
+
+  top: 1,
+  left: 0,
+  right: 0,
+  bottom: -1,
+
+  zIndex: 100,
+
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  padding: 22,
+
+  backgroundColor:
+    'rgba(0, 0, 0, 0.72)',
+  borderRadius: 23,
+},
+
+confirmModal: {
+  width: '100%',
+
+  padding: 22,
+
+  borderRadius: 20,
+
+  backgroundColor: colors.surface,
+
+  borderWidth: 1,
+  borderColor: colors.border,
+},
+
+confirmIcon: {
+  width: 48,
+  height: 48,
+
+  borderRadius: 24,
+
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  backgroundColor:
+    'rgba(240, 107, 107, 0.1)',
+},
+
+confirmTitle: {
+  marginTop: 18,
+
+  color: colors.text,
+
+  fontSize: 21,
+  fontWeight: '800',
+},
+
+confirmMessage: {
+  marginTop: 8,
+
+  color: colors.secondary,
+
+  fontSize: 14,
+  lineHeight: 20,
+},
+
+confirmActions: {
+  marginTop: 24,
+
+  flexDirection: 'row',
+  gap: 10,
+},
+
+confirmCancel: {
+  flex: 1,
+
+  height: 48,
+
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  borderRadius: 12,
+
+  borderWidth: 1,
+  borderColor: colors.border,
+
+  backgroundColor: colors.elevated,
+},
+
+confirmCancelText: {
+  color: colors.secondary,
+
+  fontSize: 14,
+  fontWeight: '700',
+},
+
+confirmDelete: {
+  flex: 1,
+
+  height: 48,
+
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  borderRadius: 12,
+
+  backgroundColor:
+    'rgba(240, 107, 107, 0.14)',
+  },
+
+  confirmDeleteText: {
+    color: colors.red,
+
+    fontSize: 14,
+    fontWeight: '800',
   },
 });
