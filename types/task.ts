@@ -26,8 +26,6 @@ export interface Task {
 
   createdAt: string;
   updatedAt: string;
-
-  notificationIds: string[];
 }
 
 export interface AddTaskInput {

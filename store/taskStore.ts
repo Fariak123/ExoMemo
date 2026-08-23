@@ -2,9 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+
 import {
     cancelTaskNotifications,
-    scheduleTaskNotifications
+    scheduleTaskNotifications,
 } from '../utils/notifications';
 
 import type {
@@ -31,385 +32,459 @@ interface TaskStore {
 
   selectedTaskId: string | null;
 
-  // Task actions
+  // -------------------------
+  // Tasks
+  // -------------------------
+
   addTask: (
-  input: AddTaskInput,
-) => Promise<string>;
+    input: AddTaskInput,
+  ) => Promise<string>;
 
   updateTask: (
-  id: string,
-  data: Partial<Task>,
-) => Promise<void>;
+    id: string,
+    data: Partial<Task>,
+  ) => Promise<void>;
 
-  completeTask: (id: string) => void;
-  reopenTask: (id: string) => void;
+  completeTask: (
+    id: string,
+  ) => Promise<void>;
 
-  deleteTask: (id: string) => void;
+  reopenTask: (
+    id: string,
+  ) => Promise<void>;
 
-  getTask: (id: string) => Task | undefined;
+  deleteTask: (
+    id: string,
+  ) => Promise<void>;
 
+  getTask: (
+    id: string,
+  ) => Task | undefined;
+
+  // -------------------------
   // Navigation
-  setScreen: (screen: Screen) => void;
+  // -------------------------
 
+  setScreen: (
+    screen: Screen,
+  ) => void;
+
+  // -------------------------
   // Filters
-  setTypeFilter: (filter: TypeFilter) => void;
+  // -------------------------
+
+  setTypeFilter: (
+    filter: TypeFilter,
+  ) => void;
 
   setPriorityFilter: (
     filter: Priority | 'all',
   ) => void;
 
-  setReverseOrder: (value: boolean) => void;
+  setReverseOrder: (
+    value: boolean,
+  ) => void;
 
+  // -------------------------
   // Search
-  setSearchOpen: (open: boolean) => void;
-  setSearchQuery: (query: string) => void;
+  // -------------------------
 
+  setSearchOpen: (
+    open: boolean,
+  ) => void;
+
+  setSearchQuery: (
+    query: string,
+  ) => void;
+
+  // -------------------------
   // History
-  setHistoryEditMode: (value: boolean) => void;
+  // -------------------------
 
+  setHistoryEditMode: (
+    value: boolean,
+  ) => void;
+
+  // -------------------------
   // Details
-  setSelectedTaskId: (id: string | null) => void;
+  // -------------------------
 
-  resetTasks: () => void;
+  setSelectedTaskId: (
+    id: string | null,
+  ) => void;
 }
 
-export const useTaskStore = create<TaskStore>()(
-  persist(
-    (set, get) => ({
-      tasks: [],
+export const useTaskStore =
+  create<TaskStore>()(
+    persist(
+      (set, get) => ({
+        tasks: [],
 
-      screen: 'agenda',
+        screen: 'agenda',
 
-      typeFilter: 'all',
+        typeFilter: 'all',
 
-      searchOpen: false,
-      searchQuery: '',
+        searchOpen: false,
+        searchQuery: '',
 
-      priorityFilter: 'all',
-      reverseOrder: false,
+        priorityFilter: 'all',
+        reverseOrder: false,
 
-      historyEditMode: false,
+        historyEditMode: false,
 
-      selectedTaskId: null,
+        selectedTaskId: null,
 
-      addTask: async (input) => {
-        const now = new Date().toISOString();
+        // =================================
+        // ADD TASK
+        // =================================
 
-        const task: Task = {
+        addTask: async (input) => {
+          const now =
+            new Date().toISOString();
+
+          const task: Task = {
             id: Crypto.randomUUID(),
 
             type: input.type,
 
             title: input.title.trim(),
-            description: input.description.trim(),
+            description:
+              input.description.trim(),
 
             priority: input.priority,
 
-            hasDeadline: input.hasDeadline,
-            deadline: input.hasDeadline
-            ? input.deadline
-            : null,
+            hasDeadline:
+              input.hasDeadline,
 
-            notifyMe: input.hasDeadline
-            ? input.notifyMe
-            : false,
+            deadline:
+              input.hasDeadline
+                ? input.deadline
+                : null,
+
+            notifyMe:
+              input.hasDeadline
+                ? input.notifyMe
+                : false,
 
             completed: false,
             completedAt: null,
 
             createdAt: now,
             updatedAt: now,
+          };
 
-            notificationIds: [],
-        };
-
-        let notificationIds: string[] = [];
-
-        if (task.notifyMe) {
-            notificationIds =
+          if (
+            task.notifyMe &&
+            task.hasDeadline &&
+            task.deadline
+          ) {
             await scheduleTaskNotifications(
-                task,
+              task,
             );
-        }
+          }
 
-        const finalTask: Task = {
-            ...task,
-            notificationIds,
-        };
-
-        set((state) => ({
+          set((state) => ({
             tasks: [
-            finalTask,
-            ...state.tasks,
+              task,
+              ...state.tasks,
             ],
-        }));
+          }));
 
-        return finalTask.id;
+          return task.id;
         },
 
-      updateTask: async (id, data) => {
-        const currentTask = get().tasks.find(
-            (task) => task.id === id,
-        );
+        // =================================
+        // UPDATE TASK
+        // =================================
 
-        if (!currentTask) {
-            return;
-        }
-
-        // Cancel old notifications before changing
-        // anything related to the deadline.
-        if (currentTask.notificationIds.length > 0) {
-            await cancelTaskNotifications(
-            currentTask.notificationIds,
+        updateTask: async (
+          id,
+          data,
+        ) => {
+          const currentTask =
+            get().tasks.find(
+              (task) =>
+                task.id === id,
             );
-        }
 
-        const updatedTask: Task = {
+          if (!currentTask) {
+            return;
+          }
+
+          // Cancel existing reminders
+          // belonging to this task.
+          await cancelTaskNotifications(
+            id,
+          );
+
+          const updatedTask: Task = {
             ...currentTask,
             ...data,
-            updatedAt: new Date().toISOString(),
-            notificationIds: [],
-        };
 
-        let notificationIds: string[] = [];
+            updatedAt:
+              new Date().toISOString(),
+          };
 
-        if (
+          // Schedule new reminders if
+          // the updated task needs them.
+          if (
             !updatedTask.completed &&
+            updatedTask.notifyMe &&
             updatedTask.hasDeadline &&
-            updatedTask.deadline &&
-            updatedTask.notifyMe
-        ) {
-            notificationIds =
+            updatedTask.deadline
+          ) {
             await scheduleTaskNotifications(
-                updatedTask,
+              updatedTask,
             );
-        }
+          }
 
-        set((state) => ({
-            tasks: state.tasks.map((task) =>
-            task.id === id
-                ? {
-                    ...updatedTask,
-                    notificationIds,
-                }
-                : task,
+          set((state) => ({
+            tasks: state.tasks.map(
+              (task) =>
+                task.id === id
+                  ? updatedTask
+                  : task,
             ),
-        }));
-      },
+          }));
+        },
 
-      completeTask: async (id) => {
-        const task = get().tasks.find(
-            (task) => task.id === id,
-        );
+        // =================================
+        // COMPLETE
+        // =================================
 
-        if (!task) {
-            return;
-        }
-
-        if (task.notificationIds.length > 0) {
-            await cancelTaskNotifications(
-            task.notificationIds,
+        completeTask: async (id) => {
+          const task =
+            get().tasks.find(
+              (task) =>
+                task.id === id,
             );
-        }
 
-        const now = new Date().toISOString();
-
-        set((state) => ({
-            tasks: state.tasks.map((task) =>
-            task.id === id
-                ? {
-                    ...task,
-                    completed: true,
-                    completedAt: now,
-                    updatedAt: now,
-                    notificationIds: [],
-                }
-                : task,
-            ),
-        }));
-      },
-
-      reopenTask: async (id) => {
-        const task = get().tasks.find(
-            (task) => task.id === id,
-        );
-
-        if (!task) {
+          if (!task) {
             return;
-        }
+          }
 
-        const reopenedTask: Task = {
+          // Cancel all reminders for
+          // this task.
+          await cancelTaskNotifications(
+            id,
+          );
+
+          const now =
+            new Date().toISOString();
+
+          set((state) => ({
+            tasks: state.tasks.map(
+              (task) =>
+                task.id === id
+                  ? {
+                      ...task,
+
+                      completed: true,
+
+                      completedAt: now,
+
+                      updatedAt: now,
+                    }
+                  : task,
+            ),
+          }));
+        },
+
+        // =================================
+        // REOPEN
+        // =================================
+
+        reopenTask: async (id) => {
+          const task =
+            get().tasks.find(
+              (task) =>
+                task.id === id,
+            );
+
+          if (!task) {
+            return;
+          }
+
+          const reopenedTask: Task = {
             ...task,
+
             completed: false,
             completedAt: null,
-            notificationIds: [],
+
             updatedAt:
-            new Date().toISOString(),
-        };
+              new Date().toISOString(),
+          };
 
-        let notificationIds: string[] = [];
-
-        if (
+          if (
             reopenedTask.notifyMe &&
             reopenedTask.hasDeadline &&
             reopenedTask.deadline
-        ) {
-            notificationIds =
+          ) {
             await scheduleTaskNotifications(
-                reopenedTask,
+              reopenedTask,
             );
-        }
+          }
 
-        set((state) => ({
-            tasks: state.tasks.map((task) =>
-            task.id === id
-                ? {
-                    ...reopenedTask,
-                    notificationIds,
-                }
-                : task,
+          set((state) => ({
+            tasks: state.tasks.map(
+              (task) =>
+                task.id === id
+                  ? reopenedTask
+                  : task,
             ),
-        }));
-      },
-
-      deleteTask: async (id) => {
-        const task = get().tasks.find(
-            (task) => task.id === id,
-        );
-
-        if (!task) {
-            return;
-        }
-
-        if (task.notificationIds.length > 0) {
-            await cancelTaskNotifications(
-                task.notificationIds,
-            );
-        }
-
-        set((state) => ({
-            tasks: state.tasks.filter(
-                (task) => task.id !== id,
-            ),
-        }));
-      },
-
-      getTask: (id) =>
-        get().tasks.find((task) => task.id === id),
-
-      setScreen: (screen) => {
-        set({
-          screen,
-          searchOpen: false,
-          searchQuery: '',
-          historyEditMode:
-            screen === 'history'
-              ? get().historyEditMode
-              : false,
-        });
-      },
-
-      setTypeFilter: (typeFilter) => {
-        set({ typeFilter });
-      },
-
-      setPriorityFilter: (priorityFilter) => {
-        set({ priorityFilter });
-      },
-
-      setReverseOrder: (reverseOrder) => {
-        set({ reverseOrder });
-      },
-
-      setSearchOpen: (searchOpen) => {
-        set({
-          searchOpen,
-          ...(searchOpen
-            ? {}
-            : { searchQuery: '' }),
-        });
-      },
-
-      setSearchQuery: (searchQuery) => {
-        set({ searchQuery });
-      },
-
-      setHistoryEditMode: (historyEditMode) => {
-        set({ historyEditMode });
-      },
-
-      setSelectedTaskId: (selectedTaskId) => {
-        set({ selectedTaskId });
-      },
-
-      resetTasks: () => {
-        set({
-            tasks: [
-            {
-                id: '1',
-                type: 'task',
-                title: 'Finish database assignment',
-                description:
-                'Complete the schema and database migration.',
-                priority: 'high',
-                hasDeadline: true,
-                deadline: new Date(
-                Date.now() + 2 * 24 * 60 * 60 * 1000,
-                ).toISOString(),
-                notifyMe: false,
-                completed: false,
-                completedAt: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                notificationIds: [],
-            },
-            {
-                id: '2',
-                type: 'plan',
-                title: 'Plan weekend trip',
-                description:
-                'Decide where to go and book transport.',
-                priority: 'medium',
-                hasDeadline: true,
-                deadline: new Date(
-                Date.now() + 6 * 24 * 60 * 60 * 1000,
-                ).toISOString(),
-                notifyMe: false,
-                completed: false,
-                completedAt: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                notificationIds: [],
-            },
-            ],
-        });
-        },
-    }),
-
-    {
-      name: 'todo-app-storage',
-
-      storage: {
-        getItem: async (name) => {
-          const value =
-            await AsyncStorage.getItem(name);
-
-          return value
-            ? JSON.parse(value)
-            : null;
+          }));
         },
 
-        setItem: async (name, value) => {
-          await AsyncStorage.setItem(
-            name,
-            JSON.stringify(value),
+        // =================================
+        // DELETE
+        // =================================
+
+        deleteTask: async (id) => {
+          // Cancel reminders first.
+          await cancelTaskNotifications(
+            id,
           );
+
+          set((state) => ({
+            tasks: state.tasks.filter(
+              (task) =>
+                task.id !== id,
+            ),
+          }));
         },
 
-        removeItem: async (name) => {
-          await AsyncStorage.removeItem(name);
+        // =================================
+        // GET TASK
+        // =================================
+
+        getTask: (id) =>
+          get().tasks.find(
+            (task) => task.id === id,
+          ),
+
+        // =================================
+        // NAVIGATION
+        // =================================
+
+        setScreen: (screen) => {
+          set({
+            screen,
+
+            searchOpen: false,
+            searchQuery: '',
+
+            historyEditMode:
+              screen === 'history'
+                ? get()
+                    .historyEditMode
+                : false,
+          });
+        },
+
+        // =================================
+        // FILTERS
+        // =================================
+
+        setTypeFilter: (
+          typeFilter,
+        ) => {
+          set({ typeFilter });
+        },
+
+        setPriorityFilter: (
+          priorityFilter,
+        ) => {
+          set({ priorityFilter });
+        },
+
+        setReverseOrder: (
+          reverseOrder,
+        ) => {
+          set({ reverseOrder });
+        },
+
+        // =================================
+        // SEARCH
+        // =================================
+
+        setSearchOpen: (
+          searchOpen,
+        ) => {
+          set({
+            searchOpen,
+
+            ...(searchOpen
+              ? {}
+              : {
+                  searchQuery: '',
+                }),
+          });
+        },
+
+        setSearchQuery: (
+          searchQuery,
+        ) => {
+          set({ searchQuery });
+        },
+
+        // =================================
+        // HISTORY
+        // =================================
+
+        setHistoryEditMode: (
+          historyEditMode,
+        ) => {
+          set({
+            historyEditMode,
+          });
+        },
+
+        // =================================
+        // DETAILS
+        // =================================
+
+        setSelectedTaskId: (
+          selectedTaskId,
+        ) => {
+          set({
+            selectedTaskId,
+          });
+        },
+      }),
+
+      {
+        name: 'todo-app-storage',
+
+        storage: {
+          getItem: async (name) => {
+            const value =
+              await AsyncStorage.getItem(
+                name,
+              );
+
+            return value
+              ? JSON.parse(value)
+              : null;
+          },
+
+          setItem: async (
+            name,
+            value,
+          ) => {
+            await AsyncStorage.setItem(
+              name,
+              JSON.stringify(value),
+            );
+          },
+
+          removeItem: async (
+            name,
+          ) => {
+            await AsyncStorage.removeItem(
+              name,
+            );
+          },
         },
       },
-    },
-  ),
-);
+    ),
+  );

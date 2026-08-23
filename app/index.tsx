@@ -24,7 +24,7 @@ import { FilterModal } from '@/components/FilterModal';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
 import { groupHistoryTasks } from '@/utils/history';
-import { configureNotifications } from '@/utils/notifications';
+import { configureNotifications, reconcileTaskNotifications } from '@/utils/notifications';
 import React, { useEffect } from 'react';
 import { AddTaskModal } from '../components/AddTaskModal';
 import { useTaskStore } from '../store/taskStore';
@@ -186,15 +186,27 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-  configureNotifications().catch(
-    (error) => {
-      console.warn(
-        'Failed to configure notifications:',
-        error,
-      );
-    },
-  );
-}, []);
+    const initializeNotifications =
+      async () => {
+        try {
+          await configureNotifications();
+
+          const currentTasks =
+            useTaskStore.getState().tasks;
+
+          await reconcileTaskNotifications(
+            currentTasks,
+          );
+        } catch (error) {
+          console.warn(
+            'Failed to initialize notifications:',
+            error,
+          );
+        }
+      };
+
+    initializeNotifications();
+  }, []);
 
   const renderScreenIcon = () => {
     if (screen === 'agenda') {

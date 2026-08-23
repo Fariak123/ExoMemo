@@ -163,13 +163,85 @@ export async function scheduleTaskNotifications(
 }
 
 export async function cancelTaskNotifications(
-  notificationIds: string[],
+  taskId: string,
 ) {
-  await Promise.all(
-    notificationIds.map((id) =>
-      Notifications.cancelScheduledNotificationAsync(
-        id,
-      ),
-    ),
+  const scheduled =
+    await Notifications.getAllScheduledNotificationsAsync();
+
+  for (const notification of scheduled) {
+    const scheduledTaskId =
+      notification.content.data?.taskId;
+
+    if (scheduledTaskId === taskId) {
+      await Notifications.cancelScheduledNotificationAsync(
+        notification.identifier,
+      );
+    }
+  }
+}
+
+export async function reconcileTaskNotifications(
+  tasks: Task[],
+) {
+  const scheduled =
+    await Notifications.getAllScheduledNotificationsAsync();
+
+  const activeTasks = tasks.filter(
+    (task) =>
+      !task.completed &&
+      task.notifyMe &&
+      task.hasDeadline &&
+      task.deadline,
   );
+
+  const activeTaskIds = new Set(
+    activeTasks.map((task) => task.id),
+  );
+
+  // Remove scheduled notifications belonging
+  // to deleted/completed/disabled tasks.
+  for (const request of scheduled) {
+    const taskId = request.content.data?.taskId;
+
+    if (
+      typeof taskId === 'string' &&
+      !activeTaskIds.has(taskId)
+    ) {
+      await Notifications.cancelScheduledNotificationAsync(
+        request.identifier,
+      );
+    }
+  }
+
+  // If permission isn't currently granted,
+  // don't ask for it automatically on startup.
+  const permissions =
+    await Notifications.getPermissionsAsync();
+
+  if (!permissions.granted) {
+    return;
+  }
+
+  // Find which active tasks already have
+  // scheduled notifications.
+  const scheduledTaskIds = new Set<string>();
+
+  for (const request of scheduled) {
+    const taskId = request.content.data?.taskId;
+
+    if (
+      typeof taskId === 'string' &&
+      activeTaskIds.has(taskId)
+    ) {
+      scheduledTaskIds.add(taskId);
+    }
+  }
+
+  // Recreate notifications for active tasks
+  // that no longer have any scheduled reminders.
+  for (const task of activeTasks) {
+    if (!scheduledTaskIds.has(task.id)) {
+      await scheduleTaskNotifications(task);
+    }
+  }
 }
