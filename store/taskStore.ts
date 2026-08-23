@@ -37,9 +37,9 @@ interface TaskStore {
 ) => Promise<string>;
 
   updateTask: (
-    id: string,
-    data: Partial<Task>,
-  ) => void;
+  id: string,
+  data: Partial<Task>,
+) => Promise<void>;
 
   completeTask: (id: string) => void;
   reopenTask: (id: string) => void;
@@ -147,17 +147,53 @@ export const useTaskStore = create<TaskStore>()(
         return finalTask.id;
         },
 
-      updateTask: (id, data) => {
+      updateTask: async (id, data) => {
+        const currentTask = get().tasks.find(
+            (task) => task.id === id,
+        );
+
+        if (!currentTask) {
+            return;
+        }
+
+        // Cancel old notifications before changing
+        // anything related to the deadline.
+        if (currentTask.notificationIds.length > 0) {
+            await cancelTaskNotifications(
+            currentTask.notificationIds,
+            );
+        }
+
+        const updatedTask: Task = {
+            ...currentTask,
+            ...data,
+            updatedAt: new Date().toISOString(),
+            notificationIds: [],
+        };
+
+        let notificationIds: string[] = [];
+
+        if (
+            !updatedTask.completed &&
+            updatedTask.hasDeadline &&
+            updatedTask.deadline &&
+            updatedTask.notifyMe
+        ) {
+            notificationIds =
+            await scheduleTaskNotifications(
+                updatedTask,
+            );
+        }
+
         set((state) => ({
-          tasks: state.tasks.map((task) =>
+            tasks: state.tasks.map((task) =>
             task.id === id
-              ? {
-                  ...task,
-                  ...data,
-                  updatedAt: new Date().toISOString(),
+                ? {
+                    ...updatedTask,
+                    notificationIds,
                 }
-              : task,
-          ),
+                : task,
+            ),
         }));
       },
 

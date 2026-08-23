@@ -123,6 +123,10 @@ export default function HomeScreen() {
     (state) => state.reopenTask,
   );
 
+  const updateTask = useTaskStore(
+    (state) => state.updateTask,
+  );
+
   const setScreen = useTaskStore(
     (state) => state.setScreen,
   );
@@ -554,7 +558,10 @@ export default function HomeScreen() {
             return;
           }
 
-          await completeTask(selectedTask.id);
+          await completeTask(
+            selectedTask.id,
+          );
+
           setSelectedTaskId(null);
         }}
         onReopen={async () => {
@@ -562,7 +569,31 @@ export default function HomeScreen() {
             return;
           }
 
-          await reopenTask(selectedTask.id);
+          await reopenTask(
+            selectedTask.id,
+          );
+
+          setSelectedTaskId(null);
+        }}
+        onSave={async (data) => {
+          if (!selectedTask) {
+            return;
+          }
+
+          await updateTask(
+            selectedTask.id,
+            data,
+          );
+        }}
+        onDelete={async () => {
+          if (!selectedTask) {
+            return;
+          }
+
+          await deleteTask(
+            selectedTask.id,
+          );
+
           setSelectedTaskId(null);
         }}
       />
