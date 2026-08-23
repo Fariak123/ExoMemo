@@ -23,6 +23,7 @@ import {
 import { FilterModal } from '@/components/FilterModal';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
+import { layout } from '@/constants/theme';
 import { groupHistoryTasks } from '@/utils/history';
 import { configureNotifications, reconcileTaskNotifications } from '@/utils/notifications';
 import React, { useEffect } from 'react';
@@ -30,10 +31,6 @@ import { AddTaskModal } from '../components/AddTaskModal';
 import { useTaskStore } from '../store/taskStore';
 import type { Screen } from '../types/task';
 import { getVisibleTasks } from '../utils/taskFilters';
-
-const BOTTOM_BAR_HEIGHT = 68;
-// const FAB_SIZE = 56;
-const FAB_BOTTOM_OFFSET = 24;
 
 const colors = {
   background: '#0F1115',
@@ -65,6 +62,33 @@ const screens: {
     label: 'History',
   },
 ];
+
+function getEmptyState(
+  screen: Screen,
+) {
+  switch (screen) {
+    case 'agenda':
+      return {
+        title: 'All clear',
+        description:
+          'You have no ongoing tasks or plans.',
+      };
+
+    case 'today':
+      return {
+        title: 'Nothing for today',
+        description:
+          'Tasks due today will appear here.',
+      };
+
+    case 'history':
+      return {
+        title: 'No completed tasks',
+        description:
+          'Completed tasks will appear here.',
+      };
+  }
+}
 
 export default function HomeScreen() {
 
@@ -185,6 +209,12 @@ export default function HomeScreen() {
     (state) => state.setReverseOrder,
   );
 
+  const hasActiveFilter =
+    priorityFilter !== 'all' ||
+    reverseOrder;
+
+  const emptyState = getEmptyState(screen);
+
   useEffect(() => {
     const initializeNotifications =
       async () => {
@@ -256,55 +286,57 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.topActions}>
-          <Pressable
-            style={[
-              styles.typeButton,
-              typeFilter === 'task' &&
-                styles.typeButtonActive,
-            ]}
-            onPress={() =>
-              setTypeFilter(
-                typeFilter === 'task'
-                  ? 'all'
-                  : 'task',
-              )
-            }
-          >
-            <Text
+          <View style={styles.typeFilter}>
+            <Pressable
               style={[
-                styles.typeButtonText,
+                styles.typeOption,
                 typeFilter === 'task' &&
-                  styles.typeButtonTextActive,
+                  styles.typeOptionActive,
               ]}
+              onPress={() =>
+                setTypeFilter(
+                  typeFilter === 'task'
+                    ? 'all'
+                    : 'task',
+                )
+              }
             >
-              Tasks
-            </Text>
-          </Pressable>
+              <Text
+                style={[
+                  styles.typeOptionText,
+                  typeFilter === 'task' &&
+                    styles.typeOptionTextActive,
+                ]}
+              >
+                Tasks
+              </Text>
+            </Pressable>
 
-          <Pressable
-            style={[
-              styles.typeButton,
-              typeFilter === 'plan' &&
-                styles.typeButtonActive,
-            ]}
-            onPress={() =>
-              setTypeFilter(
-                typeFilter === 'plan'
-                  ? 'all'
-                  : 'plan',
-              )
-            }
-          >
-            <Text
+            <Pressable
               style={[
-                styles.typeButtonText,
+                styles.typeOption,
                 typeFilter === 'plan' &&
-                  styles.typeButtonTextActive,
+                  styles.typeOptionActive,
               ]}
+              onPress={() =>
+                setTypeFilter(
+                  typeFilter === 'plan'
+                    ? 'all'
+                    : 'plan',
+                )
+              }
             >
-              Plans
-            </Text>
-          </Pressable>
+              <Text
+                style={[
+                  styles.typeOptionText,
+                  typeFilter === 'plan' &&
+                    styles.typeOptionTextActive,
+                ]}
+              >
+                Plans
+              </Text>
+            </Pressable>
+          </View>
 
           {screen === 'history' && (
             <Pressable
@@ -336,14 +368,22 @@ export default function HomeScreen() {
           </Pressable>
 
           <Pressable
-            style={styles.iconButton}
+            style={[
+              styles.iconButton,
+              hasActiveFilter &&
+                styles.iconButtonActive,
+            ]}
             onPress={() =>
               setFilterModalVisible(true)
             }
           >
             <ListFilter
               size={20}
-              color={colors.text}
+              color={
+                hasActiveFilter
+                  ? colors.accent
+                  : colors.text
+              }
             />
           </Pressable>
         </View>
@@ -417,25 +457,49 @@ export default function HomeScreen() {
               {visibleTasks.length === 1
                 ? 'item'
                 : 'items'}
-              {searchQuery.trim()
-                ? ` matching "${searchQuery.trim()}"`
-                : ''}
             </Text>
           </View>
+
+          {hasActiveFilter && (
+            <View style={styles.filteredBadge}>
+              <Text style={styles.filteredBadgeText}>
+                Filtered
+              </Text>
+            </View>
+          )}
         </View>
 
         {visibleTasks.length === 0 ? (
           <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              {screen === 'agenda' && (
+                <CalendarDays
+                  size={24}
+                  color={colors.accent}
+                />
+              )}
+
+              {screen === 'today' && (
+                <Clock3
+                  size={24}
+                  color={colors.accent}
+                />
+              )}
+
+              {screen === 'history' && (
+                <History
+                  size={24}
+                  color={colors.accent}
+                />
+              )}
+            </View>
+
             <Text style={styles.emptyTitle}>
-              Nothing here yet
+              {emptyState.title}
             </Text>
 
             <Text style={styles.emptyText}>
-              {screen === 'agenda'
-                ? 'Add a task or plan to get started.'
-                : screen === 'today'
-                  ? 'You have nothing scheduled for today.'
-                  : 'Completed tasks will appear here.'}
+              {emptyState.description}
             </Text>
           </View>
         ) : screen === 'history' ? (
@@ -493,7 +557,10 @@ export default function HomeScreen() {
         <Pressable
           style={[styles.addButton,
             {
-              bottom: BOTTOM_BAR_HEIGHT + FAB_BOTTOM_OFFSET
+              bottom:
+                layout.bottomBarHeight +
+                insets.bottom +
+                12,
             }
           ]}
           onPress={() => setAddModalVisible(true)}
@@ -506,10 +573,19 @@ export default function HomeScreen() {
       )}
 
       {/* BOTTOM BAR */}
-      <View style={styles.bottomBar}>
+      <View
+        style={[
+          styles.bottomBar,
+          {
+            paddingBottom: insets.bottom,
+            height:
+              layout.bottomBarHeight +
+              insets.bottom,
+          },
+        ]}
+      >
         {screens.map((item) => {
-          const active =
-            item.id === screen;
+          const active = item.id === screen;
 
           return (
             <Pressable
@@ -517,6 +593,7 @@ export default function HomeScreen() {
               style={styles.bottomItem}
               onPress={() => {
                 setScreen(item.id);
+
                 if (item.id !== 'history') {
                   setHistoryEditMode(false);
                 }
@@ -732,48 +809,47 @@ const styles = StyleSheet.create({
   },
 
   contentContainer: {
-    padding: 20,
-    paddingBottom: 110,
-  },
+    paddingHorizontal: 18,
+    paddingTop: 20,
 
-  sectionHeader: {
-    marginBottom: 16,
-  },
-
-  sectionTitle: {
-    color: colors.text,
-
-    fontSize: 20,
-    fontWeight: '700',
-  },
-
-  sectionSubtitle: {
-    marginTop: 4,
-
-    color: colors.muted,
-
-    fontSize: 13,
+    paddingBottom:
+      130,
   },
 
   taskList: {
-    gap: 12,
+    gap: 14,
   },
 
   emptyState: {
-    paddingVertical: 80,
+    paddingVertical: 90,
     alignItems: 'center',
+  },
+
+  emptyIcon: {
+    width: 52,
+    height: 52,
+
+    marginBottom: 16,
+
+    borderRadius: 26,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    backgroundColor:
+      'rgba(143, 184, 255, 0.1)',
   },
 
   emptyTitle: {
     color: colors.text,
 
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 
   emptyText: {
     maxWidth: 280,
-    marginTop: 8,
+    marginTop: 7,
 
     color: colors.secondary,
 
@@ -861,5 +937,83 @@ const styles = StyleSheet.create({
 
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+  },
+
+  iconButtonActive: {
+    backgroundColor:
+      'rgba(143, 184, 255, 0.1)',
+    borderRadius: 10,
+  },
+
+  typeFilter: {
+    flexDirection: 'row',
+
+    padding: 3,
+
+    borderRadius: 10,
+
+    backgroundColor: colors.elevated,
+  },
+
+  typeOption: {
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+
+    borderRadius: 8,
+  },
+
+  typeOptionActive: {
+    backgroundColor: colors.accent,
+  },
+
+  typeOptionText: {
+    color: colors.secondary,
+
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  typeOptionTextActive: {
+    color: colors.background,
+  },
+
+  sectionHeader: {
+    marginBottom: 18,
+
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+
+  sectionTitle: {
+    color: colors.text,
+
+    fontSize: 24,
+    fontWeight: '800',
+  },
+
+  sectionSubtitle: {
+    marginTop: 4,
+
+    color: colors.muted,
+
+    fontSize: 13,
+  },
+
+  filteredBadge: {
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+
+    borderRadius: 7,
+
+    backgroundColor:
+      'rgba(143, 184, 255, 0.1)',
+  },
+
+  filteredBadgeText: {
+    color: colors.accent,
+
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

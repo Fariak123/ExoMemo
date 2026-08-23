@@ -14,7 +14,33 @@ function getDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+function isSameDay(
+  a: Date,
+  b: Date,
+) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
 function getDateLabel(date: Date) {
+  const today = new Date();
+
+  const yesterday = new Date();
+  yesterday.setDate(
+    yesterday.getDate() - 1,
+  );
+
+  if (isSameDay(date, today)) {
+    return 'Today';
+  }
+
+  if (isSameDay(date, yesterday)) {
+    return 'Yesterday';
+  }
+
   return date.toLocaleDateString([], {
     weekday: 'long',
     day: 'numeric',
