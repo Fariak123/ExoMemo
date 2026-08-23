@@ -7,7 +7,9 @@ import {
   Search,
 } from 'lucide-react-native';
 
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
 
 import {
   Pressable,
@@ -18,8 +20,10 @@ import {
   View,
 } from 'react-native';
 
+import { FilterModal } from '@/components/FilterModal';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
+import { groupHistoryTasks } from '@/utils/history';
 import React from 'react';
 import { AddTaskModal } from '../components/AddTaskModal';
 import { useTaskStore } from '../store/taskStore';
@@ -62,6 +66,13 @@ const screens: {
 ];
 
 export default function HomeScreen() {
+
+  const insets = useSafeAreaInsets();
+
+  const [
+    filterModalVisible,
+    setFilterModalVisible,
+  ] = React.useState(false);
 
   const [addModalVisible, setAddModalVisible] = React.useState(false);
   const tasks = useTaskStore(
@@ -144,9 +155,30 @@ export default function HomeScreen() {
     reverseOrder,
   });
 
-  const reset = useTaskStore(
-    (state) => state.resetTasks,
-  )
+  const historyEditMode = useTaskStore(
+    (state) => state.historyEditMode,
+  );
+
+  const setHistoryEditMode = useTaskStore(
+    (state) => state.setHistoryEditMode,
+  );
+
+  const deleteTask = useTaskStore(
+    (state) => state.deleteTask,
+  );
+
+  const historyGroups =
+    screen === 'history'
+      ? groupHistoryTasks(visibleTasks)
+      : [];
+
+  const setPriorityFilter = useTaskStore(
+    (state) => state.setPriorityFilter,
+  );
+
+  const setReverseOrder = useTaskStore(
+    (state) => state.setReverseOrder,
+  );
 
   const renderScreenIcon = () => {
     if (screen === 'agenda') {
@@ -176,8 +208,16 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* TOP BAR */}
+      <View
+        style={[
+          styles.topArea,
+          {
+            paddingTop: insets.top,
+          },
+        ]}
+      >
       <View style={styles.topBar}>
         <View style={styles.titleContainer}>
           {renderScreenIcon()}
@@ -238,10 +278,27 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
 
+          {screen === 'history' && (
+            <Pressable
+              style={styles.editButton}
+              onPress={() =>
+                setHistoryEditMode(
+                  !historyEditMode,
+                )
+              }
+            >
+              <Text style={styles.editButtonText}>
+                {historyEditMode
+                  ? 'Done'
+                  : 'Edit'}
+              </Text>
+            </Pressable>
+          )}
+
           <Pressable
             style={styles.iconButton}
             onPress={() =>
-              setSearchOpen(true)
+              setSearchOpen(!searchOpen)
             }
           >
             <Search
@@ -250,7 +307,12 @@ export default function HomeScreen() {
             />
           </Pressable>
 
-          <Pressable style={styles.iconButton}>
+          <Pressable
+            style={styles.iconButton}
+            onPress={() =>
+              setFilterModalVisible(true)
+            }
+          >
             <ListFilter
               size={20}
               color={colors.text}
@@ -258,10 +320,17 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
+      </View>
 
       {/* SEARCH */}
       {searchOpen && (
-        <View style={styles.searchBar}>
+        <View 
+        style={[
+          styles.searchOverlay,
+          {
+            top: insets.top,
+          },
+        ]}>
           <Search
             size={20}
             color={colors.secondary}
@@ -270,10 +339,17 @@ export default function HomeScreen() {
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search tasks..."
+            placeholder={
+              screen === 'history'
+                ? 'Search completed...'
+                : screen === 'today'
+                  ? 'Search today...'
+                  : 'Search ongoing...'
+            }
             placeholderTextColor={colors.muted}
             style={styles.searchInput}
             autoFocus
+            returnKeyType="search"
           />
 
           <Pressable
@@ -281,6 +357,7 @@ export default function HomeScreen() {
               setSearchQuery('');
               setSearchOpen(false);
             }}
+            hitSlop={8}
           >
             <Text style={styles.cancelText}>
               Cancel
@@ -312,6 +389,9 @@ export default function HomeScreen() {
               {visibleTasks.length === 1
                 ? 'item'
                 : 'items'}
+              {searchQuery.trim()
+                ? ` matching "${searchQuery.trim()}"`
+                : ''}
             </Text>
           </View>
         </View>
@@ -329,6 +409,38 @@ export default function HomeScreen() {
                   ? 'You have nothing scheduled for today.'
                   : 'Completed tasks will appear here.'}
             </Text>
+          </View>
+        ) : screen === 'history' ? (
+          <View style={styles.historyList}>
+            {historyGroups.map((group) => (
+              <View
+                key={group.key}
+                style={styles.historyGroup}
+              >
+                <Text style={styles.dateHeader}>
+                  {group.label}
+                </Text>
+
+                <View style={styles.taskList}>
+                  {group.tasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      editMode={historyEditMode}
+                      onPress={() =>
+                        setSelectedTaskId(task.id)
+                      }
+                      onComplete={() =>
+                        completeTask(task.id)
+                      }
+                      onDelete={() => {
+                        deleteTask(task.id);
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
+            ))}
           </View>
         ) : (
           <View style={styles.taskList}>
@@ -375,9 +487,12 @@ export default function HomeScreen() {
             <Pressable
               key={item.id}
               style={styles.bottomItem}
-              onPress={() =>
-                setScreen(item.id)
-              }
+              onPress={() => {
+                setScreen(item.id);
+                if (item.id !== 'history') {
+                  setHistoryEditMode(false);
+                }
+              }}
             >
               <Text
                 style={[
@@ -392,6 +507,20 @@ export default function HomeScreen() {
           );
         })}
       </View>
+      <FilterModal
+        visible={filterModalVisible}
+        priorityFilter={priorityFilter}
+        reverseOrder={reverseOrder}
+        onPriorityChange={setPriorityFilter}
+        onReverseChange={setReverseOrder}
+        onReset={() => {
+          setPriorityFilter('all');
+          setReverseOrder(false);
+        }}
+        onClose={() =>
+          setFilterModalVisible(false)
+        }
+      />
       <AddTaskModal
         visible={addModalVisible}
         onClose={() =>
@@ -425,7 +554,7 @@ export default function HomeScreen() {
           setSelectedTaskId(null);
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -433,6 +562,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+
+  topArea: {
+    position: 'relative',
+    backgroundColor: colors.surface,
   },
 
   topBar: {
@@ -499,12 +633,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  searchBar: {
-    height: 56,
+  searchOverlay: {
+    position: 'absolute',
+
+    top: 0,
+    left: 0,
+    right: 0,
+
+    zIndex: 20,
+
+    height: 64,
+
     paddingHorizontal: 16,
 
     flexDirection: 'row',
     alignItems: 'center',
+
     gap: 10,
 
     backgroundColor: colors.surface,
@@ -628,5 +772,39 @@ const styles = StyleSheet.create({
   bottomTextActive: {
     color: colors.text,
     fontWeight: '700',
+  },
+
+  editButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+
+    borderRadius: 8,
+
+    backgroundColor: colors.elevated,
+  },
+
+  editButtonText: {
+    color: colors.text,
+
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+  historyList: {
+    gap: 28,
+  },
+
+  historyGroup: {
+    gap: 12,
+  },
+
+  dateHeader: {
+    color: colors.secondary,
+
+    fontSize: 13,
+    fontWeight: '700',
+
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
 });

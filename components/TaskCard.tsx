@@ -2,6 +2,7 @@ import {
     CalendarDays,
     Check,
     Clock3,
+    Trash2,
 } from 'lucide-react-native';
 
 import {
@@ -38,6 +39,8 @@ interface TaskCardProps {
   task: Task;
   onPress: () => void;
   onComplete: () => void;
+  editMode?: boolean;
+  onDelete?: () => void;
 }
 
 function getStatusColor(
@@ -123,6 +126,8 @@ export function TaskCard({
   task,
   onPress,
   onComplete,
+  editMode = false,
+  onDelete,
 }: TaskCardProps) {
   const status = getDeadlineStatus(task);
 
@@ -171,30 +176,46 @@ export function TaskCard({
             </Text>
           </View>
 
-          <Pressable
-            onPress={(event) => {
-              event.stopPropagation();
+          {editMode ? (
+            <Pressable
+                onPress={(event) => {
+                event.stopPropagation();
+                onDelete?.();
+                }}
+                style={styles.deleteButton}
+                hitSlop={8}
+            >
+                <Trash2
+                size={18}
+                color={colors.red}
+                />
+            </Pressable>
+            ) : (
+            <Pressable
+                onPress={(event) => {
+                event.stopPropagation();
 
-              if (!task.completed) {
-                onComplete();
-              }
-            }}
-            style={[
-              styles.completeButton,
-              task.completed &&
-                styles.completedButton,
-            ]}
-            hitSlop={8}
-          >
-            <Check
-              size={18}
-              color={
-                task.completed
-                  ? colors.accent
-                  : colors.secondary
-              }
-            />
-          </Pressable>
+                if (!task.completed) {
+                    onComplete();
+                }
+                }}
+                style={[
+                styles.completeButton,
+                task.completed &&
+                    styles.completedButton,
+                ]}
+                hitSlop={8}
+            >
+                <Check
+                size={18}
+                color={
+                    task.completed
+                    ? colors.accent
+                    : colors.secondary
+                }
+                />
+            </Pressable>
+            )}
         </View>
 
         {task.description.length > 0 && (
@@ -392,4 +413,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.6,
   },
+
+  deleteButton: {
+    width: 34,
+    height: 34,
+
+    borderRadius: 17,
+
+    borderWidth: 1,
+    borderColor: 'rgba(240, 107, 107, 0.35)',
+
+    backgroundColor:
+        'rgba(240, 107, 107, 0.1)',
+
+    alignItems: 'center',
+    justifyContent: 'center',
+    },
 });
