@@ -24,14 +24,15 @@ import { FilterModal } from '@/components/FilterModal';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
 import { groupHistoryTasks } from '@/utils/history';
-import React from 'react';
+import { configureNotifications } from '@/utils/notifications';
+import React, { useEffect } from 'react';
 import { AddTaskModal } from '../components/AddTaskModal';
 import { useTaskStore } from '../store/taskStore';
 import type { Screen } from '../types/task';
 import { getVisibleTasks } from '../utils/taskFilters';
 
 const BOTTOM_BAR_HEIGHT = 68;
-const FAB_SIZE = 56;
+// const FAB_SIZE = 56;
 const FAB_BOTTOM_OFFSET = 24;
 
 const colors = {
@@ -179,6 +180,17 @@ export default function HomeScreen() {
   const setReverseOrder = useTaskStore(
     (state) => state.setReverseOrder,
   );
+
+  useEffect(() => {
+  configureNotifications().catch(
+    (error) => {
+      console.warn(
+        'Failed to configure notifications:',
+        error,
+      );
+    },
+  );
+}, []);
 
   const renderScreenIcon = () => {
     if (screen === 'agenda') {
@@ -465,7 +477,7 @@ export default function HomeScreen() {
         <Pressable
           style={[styles.addButton,
             {
-              bottom: BOTTOM_BAR_HEIGHT + FAB_SIZE / 2 + FAB_BOTTOM_OFFSET
+              bottom: BOTTOM_BAR_HEIGHT + FAB_BOTTOM_OFFSET
             }
           ]}
           onPress={() => setAddModalVisible(true)}
@@ -526,8 +538,8 @@ export default function HomeScreen() {
         onClose={() =>
           setAddModalVisible(false)
         }
-        onAdd={(data) => {
-          addTask(data);
+        onAdd={async (data) => {
+          await addTask(data);
           setAddModalVisible(false);
         }}
       />
@@ -537,20 +549,20 @@ export default function HomeScreen() {
         onClose={() =>
           setSelectedTaskId(null)
         }
-        onComplete={() => {
+        onComplete={async () => {
           if (!selectedTask) {
             return;
           }
 
-          completeTask(selectedTask.id);
+          await completeTask(selectedTask.id);
           setSelectedTaskId(null);
         }}
-        onReopen={() => {
+        onReopen={async () => {
           if (!selectedTask) {
             return;
           }
 
-          reopenTask(selectedTask.id);
+          await reopenTask(selectedTask.id);
           setSelectedTaskId(null);
         }}
       />

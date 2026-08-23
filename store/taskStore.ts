@@ -2,6 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import {
+    cancelTaskNotifications,
+    scheduleTaskNotifications
+} from '../utils/notifications';
 
 import type {
     AddTaskInput,
@@ -28,7 +32,9 @@ interface TaskStore {
   selectedTaskId: string | null;
 
   // Task actions
-  addTask: (input: AddTaskInput) => string;
+  addTask: (
+  input: AddTaskInput,
+) => Promise<string>;
 
   updateTask: (
     id: string,
@@ -86,43 +92,60 @@ export const useTaskStore = create<TaskStore>()(
 
       selectedTaskId: null,
 
-      addTask: (input) => {
+      addTask: async (input) => {
         const now = new Date().toISOString();
 
         const task: Task = {
-          id: Crypto.randomUUID(),
+            id: Crypto.randomUUID(),
 
-          type: input.type,
+            type: input.type,
 
-          title: input.title.trim(),
-          description: input.description.trim(),
+            title: input.title.trim(),
+            description: input.description.trim(),
 
-          priority: input.priority,
+            priority: input.priority,
 
-          hasDeadline: input.hasDeadline,
-          deadline: input.hasDeadline
+            hasDeadline: input.hasDeadline,
+            deadline: input.hasDeadline
             ? input.deadline
             : null,
 
-          notifyMe: input.hasDeadline
+            notifyMe: input.hasDeadline
             ? input.notifyMe
             : false,
 
-          completed: false,
-          completedAt: null,
+            completed: false,
+            completedAt: null,
 
-          createdAt: now,
-          updatedAt: now,
+            createdAt: now,
+            updatedAt: now,
 
-          notificationIds: [],
+            notificationIds: [],
+        };
+
+        let notificationIds: string[] = [];
+
+        if (task.notifyMe) {
+            notificationIds =
+            await scheduleTaskNotifications(
+                task,
+            );
+        }
+
+        const finalTask: Task = {
+            ...task,
+            notificationIds,
         };
 
         set((state) => ({
-          tasks: [task, ...state.tasks],
+            tasks: [
+            finalTask,
+            ...state.tasks,
+            ],
         }));
 
-        return task.id;
-      },
+        return finalTask.id;
+        },
 
       updateTask: (id, data) => {
         set((state) => ({
@@ -138,43 +161,100 @@ export const useTaskStore = create<TaskStore>()(
         }));
       },
 
-      completeTask: (id) => {
+      completeTask: async (id) => {
+        const task = get().tasks.find(
+            (task) => task.id === id,
+        );
+
+        if (!task) {
+            return;
+        }
+
+        if (task.notificationIds.length > 0) {
+            await cancelTaskNotifications(
+            task.notificationIds,
+            );
+        }
+
         const now = new Date().toISOString();
 
         set((state) => ({
-          tasks: state.tasks.map((task) =>
+            tasks: state.tasks.map((task) =>
             task.id === id
-              ? {
-                  ...task,
-                  completed: true,
-                  completedAt: now,
-                  updatedAt: now,
+                ? {
+                    ...task,
+                    completed: true,
+                    completedAt: now,
+                    updatedAt: now,
+                    notificationIds: [],
                 }
-              : task,
-          ),
+                : task,
+            ),
         }));
       },
 
-      reopenTask: (id) => {
+      reopenTask: async (id) => {
+        const task = get().tasks.find(
+            (task) => task.id === id,
+        );
+
+        if (!task) {
+            return;
+        }
+
+        const reopenedTask: Task = {
+            ...task,
+            completed: false,
+            completedAt: null,
+            notificationIds: [],
+            updatedAt:
+            new Date().toISOString(),
+        };
+
+        let notificationIds: string[] = [];
+
+        if (
+            reopenedTask.notifyMe &&
+            reopenedTask.hasDeadline &&
+            reopenedTask.deadline
+        ) {
+            notificationIds =
+            await scheduleTaskNotifications(
+                reopenedTask,
+            );
+        }
+
         set((state) => ({
-          tasks: state.tasks.map((task) =>
+            tasks: state.tasks.map((task) =>
             task.id === id
-              ? {
-                  ...task,
-                  completed: false,
-                  completedAt: null,
-                  updatedAt: new Date().toISOString(),
+                ? {
+                    ...reopenedTask,
+                    notificationIds,
                 }
-              : task,
-          ),
+                : task,
+            ),
         }));
       },
 
-      deleteTask: (id) => {
+      deleteTask: async (id) => {
+        const task = get().tasks.find(
+            (task) => task.id === id,
+        );
+
+        if (!task) {
+            return;
+        }
+
+        if (task.notificationIds.length > 0) {
+            await cancelTaskNotifications(
+                task.notificationIds,
+            );
+        }
+
         set((state) => ({
-          tasks: state.tasks.filter(
-            (task) => task.id !== id,
-          ),
+            tasks: state.tasks.filter(
+                (task) => task.id !== id,
+            ),
         }));
       },
 
