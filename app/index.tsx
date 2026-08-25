@@ -23,7 +23,7 @@ import {
 import { FilterModal } from '@/components/FilterModal';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
-import { layout } from '@/constants/theme';
+import { colors, layout } from '@/constants/theme';
 import { groupHistoryTasks } from '@/utils/history';
 import { configureNotifications, reconcileTaskNotifications } from '@/utils/notifications';
 import React, { useEffect } from 'react';
@@ -31,19 +31,6 @@ import { AddTaskModal } from '../components/AddTaskModal';
 import { useTaskStore } from '../store/taskStore';
 import type { Screen } from '../types/task';
 import { getVisibleTasks } from '../utils/taskFilters';
-
-const colors = {
-  background: '#0F1115',
-  surface: '#171A21',
-  elevated: '#1E222B',
-  border: '#292E38',
-
-  text: '#F5F7FA',
-  secondary: '#9AA2B1',
-  muted: '#687080',
-
-  accent: '#8FB8FF',
-};
 
 const screens: {
   id: Screen;
@@ -208,26 +195,28 @@ export default function HomeScreen() {
   const emptyState = getEmptyState(screen);
 
   useEffect(() => {
-    const initializeNotifications =
+    const initialize =
       async () => {
         try {
           await configureNotifications();
 
-          const currentTasks =
-            useTaskStore.getState().tasks;
+          const tasks =
+            useTaskStore
+              .getState()
+              .tasks;
 
           await reconcileTaskNotifications(
-            currentTasks,
+            tasks,
           );
         } catch (error) {
           console.warn(
-            'Failed to initialize notifications:',
+            'Notification initialization failed:',
             error,
           );
         }
       };
 
-    initializeNotifications();
+    initialize();
   }, []);
 
   const renderScreenIcon = () => {

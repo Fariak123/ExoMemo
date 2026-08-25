@@ -4,16 +4,16 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import {
-    cancelTaskNotifications,
-    scheduleTaskNotifications,
+  cancelTaskNotifications,
+  scheduleTaskNotifications,
 } from '../utils/notifications';
 
 import type {
-    AddTaskInput,
-    Priority,
-    Screen,
-    Task,
-    TypeFilter,
+  AddTaskInput,
+  Priority,
+  Screen,
+  Task,
+  TypeFilter,
 } from '../types/task';
 
 interface TaskStore {
@@ -193,16 +193,13 @@ export const useTaskStore =
         ) => {
           const currentTask =
             get().tasks.find(
-              (task) =>
-                task.id === id,
+              (task) => task.id === id,
             );
 
           if (!currentTask) {
             return;
           }
 
-          // Cancel existing reminders
-          // belonging to this task.
           await cancelTaskNotifications(
             id,
           );
@@ -210,13 +207,10 @@ export const useTaskStore =
           const updatedTask: Task = {
             ...currentTask,
             ...data,
-
             updatedAt:
               new Date().toISOString(),
           };
 
-          // Schedule new reminders if
-          // the updated task needs them.
           if (
             !updatedTask.completed &&
             updatedTask.notifyMe &&
@@ -245,16 +239,13 @@ export const useTaskStore =
         completeTask: async (id) => {
           const task =
             get().tasks.find(
-              (task) =>
-                task.id === id,
+              (task) => task.id === id,
             );
 
           if (!task) {
             return;
           }
 
-          // Cancel all reminders for
-          // this task.
           await cancelTaskNotifications(
             id,
           );
@@ -268,11 +259,8 @@ export const useTaskStore =
                 task.id === id
                   ? {
                       ...task,
-
                       completed: true,
-
                       completedAt: now,
-
                       updatedAt: now,
                     }
                   : task,
@@ -287,8 +275,7 @@ export const useTaskStore =
         reopenTask: async (id) => {
           const task =
             get().tasks.find(
-              (task) =>
-                task.id === id,
+              (task) => task.id === id,
             );
 
           if (!task) {
@@ -297,10 +284,8 @@ export const useTaskStore =
 
           const reopenedTask: Task = {
             ...task,
-
             completed: false,
             completedAt: null,
-
             updatedAt:
               new Date().toISOString(),
           };
@@ -330,15 +315,13 @@ export const useTaskStore =
         // =================================
 
         deleteTask: async (id) => {
-          // Cancel reminders first.
           await cancelTaskNotifications(
             id,
           );
 
           set((state) => ({
             tasks: state.tasks.filter(
-              (task) =>
-                task.id !== id,
+              (task) => task.id !== id,
             ),
           }));
         },

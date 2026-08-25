@@ -132,21 +132,8 @@ export function getVisibleTasks({
   // Sorting
   // -------------------------
 
-  if (
-    screen === 'agenda' ||
-    screen === 'today'
-  ) {
+  if (screen === 'agenda') {
     result.sort((a, b) => {
-      // Ongoing first for Today.
-      if (screen === 'today') {
-        if (
-          a.completed !== b.completed
-        ) {
-          return a.completed ? 1 : -1;
-        }
-      }
-
-      // Tasks with deadlines first.
       if (
         a.deadline === null &&
         b.deadline !== null
@@ -162,8 +149,8 @@ export function getVisibleTasks({
       }
 
       if (
-        a.deadline !== null &&
-        b.deadline !== null
+        a.deadline &&
+        b.deadline
       ) {
         return (
           new Date(a.deadline).getTime() -
@@ -175,17 +162,52 @@ export function getVisibleTasks({
     });
   }
 
+  if (screen === 'today') {
+    result.sort((a, b) => {
+      if (
+        a.completed !== b.completed
+      ) {
+        return a.completed ? 1 : -1;
+      }
+
+      if (
+        !a.completed &&
+        !b.completed &&
+        a.deadline &&
+        b.deadline
+      ) {
+        return (
+          new Date(a.deadline).getTime() -
+          new Date(b.deadline).getTime()
+        );
+      }
+
+      if (
+        a.completed &&
+        b.completed &&
+        a.completedAt &&
+        b.completedAt
+      ) {
+        return (
+          new Date(b.completedAt).getTime() -
+          new Date(a.completedAt).getTime()
+        );
+      }
+
+      return 0;
+    });
+  }
+
   if (screen === 'history') {
     result.sort((a, b) => {
-      const aDate = a.completedAt
-        ? new Date(a.completedAt).getTime()
-        : 0;
-
-      const bDate = b.completedAt
-        ? new Date(b.completedAt).getTime()
-        : 0;
-
-      return bDate - aDate;
+      return (
+        new Date(
+          b.completedAt!,
+        ).getTime() -
+        new Date(
+          a.completedAt!,
+        ).getTime()
+      );
     });
   }
 

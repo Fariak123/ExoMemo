@@ -1,44 +1,27 @@
 import {
-    CalendarDays,
-    Check,
-    ChevronDown,
-    X,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  X,
 } from 'lucide-react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import {
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import type {
-    Priority,
-    TaskType,
+  Priority,
+  TaskType,
 } from '../types/task';
-
-const colors = {
-  background: '#0F1115',
-  surface: '#171A21',
-  elevated: '#1E222B',
-  border: '#292E38',
-
-  text: '#F5F7FA',
-  secondary: '#9AA2B1',
-  muted: '#687080',
-
-  accent: '#8FB8FF',
-
-  green: '#69D39A',
-  yellow: '#E6C76A',
-  red: '#F06B6B',
-};
 
 interface AddTaskModalProps {
   visible: boolean;
@@ -508,6 +491,7 @@ function getPriorityBackground(
   }
 }
 
+import { colors } from '@/constants/theme';
 import React from 'react';
 
 const styles = StyleSheet.create({

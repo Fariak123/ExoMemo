@@ -1,34 +1,19 @@
 import {
-    Check,
-    RotateCcw,
-    X,
+  Check,
+  RotateCcw,
+  X,
 } from 'lucide-react-native';
 
 import {
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
+import { colors } from '@/constants/theme';
 import type { Priority } from '../types/task';
-
-const colors = {
-  background: '#0F1115',
-  surface: '#171A21',
-  elevated: '#1E222B',
-  border: '#292E38',
-
-  text: '#F5F7FA',
-  secondary: '#9AA2B1',
-  muted: '#687080',
-
-  accent: '#8FB8FF',
-
-  yellow: '#E6C76A',
-  red: '#F06B6B',
-};
 
 interface FilterModalProps {
   visible: boolean;

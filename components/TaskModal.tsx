@@ -1,47 +1,32 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-    AlertTriangle,
-    CalendarDays,
-    Check,
-    Clock3,
-    Edit3,
-    X
+  AlertTriangle,
+  CalendarDays,
+  Check,
+  Clock3,
+  Edit3,
+  X
 } from 'lucide-react-native';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import {
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
+import { colors } from '@/constants/theme';
 import type {
-    Priority,
-    Task,
+  Priority,
+  Task,
 } from '../types/task';
-
-const colors = {
-  background: '#0F1115',
-  surface: '#171A21',
-  elevated: '#1E222B',
-  border: '#292E38',
-
-  text: '#F5F7FA',
-  secondary: '#9AA2B1',
-  muted: '#687080',
-
-  accent: '#8FB8FF',
-
-  yellow: '#E6C76A',
-  red: '#F06B6B',
-};
 
 interface TaskModalProps {
   task: Task | null;

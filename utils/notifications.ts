@@ -6,18 +6,20 @@ import type { Task } from '../types/task';
 const CHANNEL_ID = 'deadline-reminders';
 
 export async function configureNotifications() {
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync(
-      CHANNEL_ID,
-      {
-        name: 'Deadline reminders',
-        importance:
-          Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        sound: 'default',
-      },
-    );
+  if (Platform.OS !== 'android') {
+    return;
   }
+
+  await Notifications.setNotificationChannelAsync(
+    CHANNEL_ID,
+    {
+      name: 'Deadline reminders',
+      importance:
+        Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      sound: 'default',
+    },
+  );
 }
 
 export async function requestNotificationPermission() {
@@ -43,34 +45,26 @@ function getReminderDates(
 ) {
   const dates: Date[] = [];
 
-  for (let daysBefore = 7; daysBefore >= 0; daysBefore--) {
+  for (
+    let daysBefore = 7;
+    daysBefore >= 0;
+    daysBefore--
+  ) {
     const reminder = new Date(deadline);
 
     reminder.setDate(
-      reminder.getDate() - daysBefore,
+      reminder.getDate() -
+        daysBefore,
     );
 
-    if (reminder.getTime() > Date.now()) {
+    if (
+      reminder.getTime() >
+      Date.now()
+    ) {
       dates.push(reminder);
     }
   }
-// for (
-//   let minutesBefore = 2;
-//   minutesBefore >= 0;
-//   minutesBefore--
-// ) {
-//   const reminder = new Date(
-//     deadline.getTime() -
-//       minutesBefore * 60 * 1000,
-//   );
 
-//   if (
-//     reminder.getTime() >
-//     Date.now()
-//   ) {
-//     dates.push(reminder);
-//   }
-// }
   return dates;
 }
 
@@ -87,7 +81,7 @@ function getReminderMessage(
       (24 * 60 * 60 * 1000),
   );
 
-  if (daysRemaining === 0) {
+  if (daysRemaining <= 0) {
     return 'Your deadline is now.';
   }
 
@@ -102,64 +96,70 @@ export async function scheduleTaskNotifications(
   task: Task,
 ) {
   if (
+    task.completed ||
+    !task.notifyMe ||
     !task.hasDeadline ||
-    !task.deadline ||
-    !task.notifyMe
+    !task.deadline
   ) {
-    return [];
+    return;
   }
 
-  const deadline = new Date(task.deadline);
+  const deadline = new Date(
+    task.deadline,
+  );
 
-  if (deadline.getTime() <= Date.now()) {
-    return [];
+  if (
+    deadline.getTime() <=
+    Date.now()
+  ) {
+    return;
   }
 
   const permissionGranted =
     await requestNotificationPermission();
 
   if (!permissionGranted) {
-    return [];
+    return;
   }
 
   const dates =
     getReminderDates(deadline);
 
-  const notificationIds: string[] = [];
-
   for (const date of dates) {
-    const id =
-      await Notifications.scheduleNotificationAsync(
-        {
-          content: {
-            title: task.title,
-            body: getReminderMessage(
-              date,
-              deadline,
-            ),
-            data: {
-              taskId: task.id,
-            },
-            sound: 'default',
-          },
+    await Notifications.scheduleNotificationAsync(
+      {
+        content: {
+          title: task.title,
 
-          trigger: {
-            type: Notifications
-              .SchedulableTriggerInputTypes.DATE,
+          body: getReminderMessage(
             date,
-            ...(Platform.OS === 'android'
-              ? {
-                  channelId: CHANNEL_ID,
-                }
-              : {}),
+            deadline,
+          ),
+
+          data: {
+            taskId: task.id,
           },
+
+          sound: 'default',
         },
-      );
 
-    notificationIds.push(id);
+        trigger: {
+          type: Notifications
+            .SchedulableTriggerInputTypes
+            .DATE,
+
+          date,
+
+          ...(Platform.OS === 'android'
+            ? {
+                channelId:
+                  CHANNEL_ID,
+              }
+            : {}),
+        },
+      },
+    );
   }
-
-  return notificationIds;
 }
 
 export async function cancelTaskNotifications(
@@ -170,9 +170,12 @@ export async function cancelTaskNotifications(
 
   for (const notification of scheduled) {
     const scheduledTaskId =
-      notification.content.data?.taskId;
+      notification.content.data
+        ?.taskId;
 
-    if (scheduledTaskId === taskId) {
+    if (
+      scheduledTaskId === taskId
+    ) {
       await Notifications.cancelScheduledNotificationAsync(
         notification.identifier,
       );
@@ -183,7 +186,7 @@ export async function cancelTaskNotifications(
 export async function reconcileTaskNotifications(
   tasks: Task[],
 ) {
-  const scheduled =
+  let scheduled =
     await Notifications.getAllScheduledNotificationsAsync();
 
   const activeTasks = tasks.filter(
@@ -191,30 +194,32 @@ export async function reconcileTaskNotifications(
       !task.completed &&
       task.notifyMe &&
       task.hasDeadline &&
-      task.deadline,
+      task.deadline &&
+      new Date(task.deadline).getTime() >
+        Date.now(),
   );
 
   const activeTaskIds = new Set(
     activeTasks.map((task) => task.id),
   );
 
-  // Remove scheduled notifications belonging
-  // to deleted/completed/disabled tasks.
-  for (const request of scheduled) {
-    const taskId = request.content.data?.taskId;
+  for (const notification of scheduled) {
+    const taskId =
+      notification.content.data?.taskId;
 
     if (
       typeof taskId === 'string' &&
       !activeTaskIds.has(taskId)
     ) {
       await Notifications.cancelScheduledNotificationAsync(
-        request.identifier,
+        notification.identifier,
       );
     }
   }
 
-  // If permission isn't currently granted,
-  // don't ask for it automatically on startup.
+  scheduled =
+    await Notifications.getAllScheduledNotificationsAsync();
+
   const permissions =
     await Notifications.getPermissionsAsync();
 
@@ -222,12 +227,11 @@ export async function reconcileTaskNotifications(
     return;
   }
 
-  // Find which active tasks already have
-  // scheduled notifications.
   const scheduledTaskIds = new Set<string>();
 
-  for (const request of scheduled) {
-    const taskId = request.content.data?.taskId;
+  for (const notification of scheduled) {
+    const taskId =
+      notification.content.data?.taskId;
 
     if (
       typeof taskId === 'string' &&
@@ -237,8 +241,6 @@ export async function reconcileTaskNotifications(
     }
   }
 
-  // Recreate notifications for active tasks
-  // that no longer have any scheduled reminders.
   for (const task of activeTasks) {
     if (!scheduledTaskIds.has(task.id)) {
       await scheduleTaskNotifications(task);
