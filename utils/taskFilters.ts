@@ -7,16 +7,12 @@ import type {
 
 interface GetVisibleTasksParams {
   tasks: Task[];
-
   screen: Screen;
-
   typeFilter: TypeFilter;
-
   searchQuery: string;
-
   priorityFilter: Priority | 'all';
-
   reverseOrder: boolean;
+  now: Date;
 }
 
 function isSameDay(
@@ -37,9 +33,8 @@ export function getVisibleTasks({
   searchQuery,
   priorityFilter,
   reverseOrder,
+  now,
 }: GetVisibleTasksParams): Task[] {
-  const now = new Date();
-
   let result = [...tasks];
 
   // -------------------------

@@ -22,6 +22,7 @@ interface TaskCardProps {
   task: Task;
   onPress: () => void;
   onComplete: () => void;
+  now: Date;
 }
 
 function getStatusColor(
@@ -107,8 +108,9 @@ export function TaskCard({
   task,
   onPress,
   onComplete,
+  now,
 }: TaskCardProps) {
-  const status = getDeadlineStatus(task);
+  const status = getDeadlineStatus(task, now);
 
   // Completed tasks should not show a deadline warning.
   // Today specifically wants an ongoing task to have a red line.

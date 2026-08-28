@@ -24,6 +24,7 @@ import { FilterModal } from '@/components/FilterModal';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskModal } from '@/components/TaskModal';
 import { colors, layout } from '@/constants/theme';
+import { useCurrentTime } from '@/hooks/useCurrentTime';
 import { groupHistoryTasks } from '@/utils/history';
 import { configureNotifications, reconcileTaskNotifications } from '@/utils/notifications';
 import React, { useEffect } from 'react';
@@ -162,6 +163,8 @@ export default function HomeScreen() {
     (state) => state.setSelectedTaskId,
   );
 
+  const now = useCurrentTime();
+
   const visibleTasks = getVisibleTasks({
     tasks,
     screen,
@@ -169,6 +172,7 @@ export default function HomeScreen() {
     searchQuery,
     priorityFilter,
     reverseOrder,
+    now,
   });
 
   const deleteTask = useTaskStore(
@@ -482,6 +486,7 @@ export default function HomeScreen() {
                     <TaskCard
                       key={task.id}
                       task={task}
+                      now={now}
                       onPress={() =>
                         setSelectedTaskId(task.id)
                       }
@@ -500,6 +505,7 @@ export default function HomeScreen() {
               <TaskCard
                 key={task.id}
                 task={task}
+                now={now}
                 onPress={() =>
                   setSelectedTaskId(task.id)
                 }

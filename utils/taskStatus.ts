@@ -8,6 +8,7 @@ export type DeadlineStatus =
 
 export function getDeadlineStatus(
   task: Task,
+  now = new Date(),
 ): DeadlineStatus {
   if (
     task.completed ||
@@ -17,14 +18,14 @@ export function getDeadlineStatus(
     return 'none';
   }
 
-  const now = Date.now();
+  const currentTime = now.getTime();
 
   const deadline = new Date(
     task.deadline,
   ).getTime();
 
   const difference =
-    deadline - now;
+    deadline - currentTime;
 
   const threeDays =
     3 * 24 * 60 * 60 * 1000;
