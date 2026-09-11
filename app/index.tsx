@@ -482,7 +482,7 @@ export default function HomeScreen() {
                 </Text>
 
                 <View style={styles.taskList}>
-                  {visibleTasks.map((task) => (
+                  {group.tasks.map((task) => (
                     <SwipeableTaskCard
                       key={task.id}
                       task={task}

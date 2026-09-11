@@ -1,50 +1,165 @@
-# Welcome to your Expo app 👋
+# Todo Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile task and planning application built with **Expo, React Native, TypeScript, and Zustand**.
 
-## Get started
+The app is designed around three focused views — **Agenda, Today, and History** — with task management, deadline tracking, local notifications, search, filtering and editing.
+## Features
 
-1. Install dependencies
+### Task & Plan Management
 
-   ```bash
-   npm install
-   ```
+* Create both **Tasks** and **Plans**
+* Add a title and description
+* Assign a priority: **Low, Medium, or High**
+* Add or remove a deadline
+* Enable or disable deadline notifications
+* Edit existing tasks and plans
+* Mark tasks as completed and reopen them later
 
-2. Start the app
+### Agenda
 
-   ```bash
-   npx expo start
-   ```
+Shows all currently ongoing tasks and plans.
 
-In the output, you'll find options to open the app in a
+* Sorted by closest deadline
+* Deadline status indicators:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+  * Green — more than 7 days remaining
+  * Yellow — 4–7 days remaining
+  * Red — 3 days or less, including overdue deadlines
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Ongoing tasks use a red deadline indicator, while completed tasks use a strikethrough title.
 
-## Get a fresh project
+### History
 
-When you're ready, run:
+Shows completed tasks grouped by completion date.
+
+* Newest completion dates first
+* Completed titles shown with strikethrough
+* Tasks remain editable through the details modal
+
+### Deadline Notifications
+
+Tasks can optionally schedule local deadline reminders.
+
+When notifications are enabled, reminders are scheduled:
+
+* 7 days before the deadline
+* Every day afterwards
+* At the deadline
+
+Notifications are cancelled when a task is completed or deleted and recreated when an eligible task is reopened or edited.
+
+## Tech Stack
+
+| Technology                                 | Purpose                                     |
+| ------------------------------------------ | ------------------------------------------- |
+| **TypeScript**                             | Type safety and application logic           |
+| **React Native**                           | Mobile UI                                   |
+| **Expo**                                   | Development and native platform integration |
+| **Expo Router**                            | Application routing                         |
+| **Zustand**                                | Global state management                     |
+| **AsyncStorage**                           | Persistent local task storage               |
+| **expo-notifications**                     | Local scheduled notifications               |
+| **expo-crypto**                            | UUID generation                             |
+| **lucide-react-native**                    | Icons                                       |
+| **react-native-safe-area-context**         | iOS/Android safe-area handling              |
+| **@react-native-community/datetimepicker** | Deadline date/time selection                |
+| **react-native-gesture-handler**           | Swipe interactions                          |
+| **react-native-reanimated**                | Gesture animation support                   |
+
+### State Management
+
+Zustand manages:
+
+* Tasks
+* Current screen
+* Task/Plan filter
+* Priority filter
+* Search state
+* Ordering
+* Selected task
+
+## Getting Started
+
+### Prerequisites
+
+* Node.js
+* npm
+* Expo CLI / Expo tooling
+* Expo Go for development on a physical device
+
+### Installation
+
+Clone the repository:
 
 ```bash
-npm run reset-project
+git clone <https://github.com/Fariak123/ExoMemo.git>
+cd <ExoMemo>
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Install dependencies:
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Start the development server:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx expo start
+```
 
-## Join the community
+Open the project using Expo Go or an available emulator/simulator.
 
-Join our community of developers creating universal apps.
+### Useful Commands
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Start Expo:
+
+```bash
+npx expo start
+```
+
+Clear the Metro cache:
+
+```bash
+npx expo start -c
+```
+
+Run TypeScript checks:
+
+```bash
+npx tsc --noEmit
+```
+
+Check the Expo project:
+
+```bash
+npx expo-doctor
+```
+
+## Screenshots
+
+Screenshots will be added here.
+
+### Agenda
+
+*Add screenshot here*
+
+### Add Task
+
+*Add screenshot here*
+
+### Today
+
+*Add screenshot here*
+
+### History
+
+*Add screenshot here*
+
+### Task Details
+
+*Add screenshot here*
+
+## License
+
+This project is intended as a personal portfolio and learning project.
