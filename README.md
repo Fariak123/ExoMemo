@@ -135,7 +135,9 @@ npx expo-doctor
 ## Screenshots
 
 ### Agenda
-<img src="https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Agenda.jpg?raw=true" width="300">
+<p align="center">
+  <img src="https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Agenda.jpg?raw=true" width="300">
+</p>
 
 ### Add Task
 
