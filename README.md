@@ -2,7 +2,7 @@
 
 A mobile task and planning application built with **Expo, React Native, TypeScript, and Zustand**.
 
-The app is designed around three focused views — **Agenda, Today, and History** — with task management, deadline tracking, local notifications, search, filtering and editing.
+The app is designed around three focused views --- **Agenda, Today, and History** --- with task management, deadline tracking, local notifications, search, filtering and editing.
 ## Features
 
 ### Task & Plan Management
