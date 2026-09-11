@@ -141,19 +141,27 @@ npx expo-doctor
 
 ### Add Task
 
-![Add Task](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/AddTask.jpg?raw=true)
+<p align="center">
+  <img src="https://github.com/Fariak123/ExoMemo/blob/main/assets/images/AddTask.jpg?raw=true" width="300">
+</p>
 
 ### Today
 
-![Today](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Today.jpg?raw=true)
+<p align="center">
+  <img src="https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Today.jpg?raw=true" width="300">
+</p>
 
 ### History
 
-![History](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/History.jpg?raw=true)
+<p align="center">
+  <img src="https://github.com/Fariak123/ExoMemo/blob/main/assets/images/History.jpg?raw=true" width="300">
+</p>
 
 ### Task Details
 
-![Task Details](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Details.jpg?raw=true)
+<p align="center">
+  <img src="https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Details.jpg?raw=true" width="300">
+</p>
 
 ## License
 
