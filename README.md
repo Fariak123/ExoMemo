@@ -22,9 +22,9 @@ Shows all currently ongoing tasks and plans.
 * Sorted by closest deadline
 * Deadline status indicators:
 
-  * Green — more than 7 days remaining
-  * Yellow — 4–7 days remaining
-  * Red — 3 days or less, including overdue deadlines
+  * Green: more than 7 days remaining
+  * Yellow: 4–7 days remaining
+  * Red: 3 days or less, including overdue deadlines
 
 Ongoing tasks use a red deadline indicator, while completed tasks use a strikethrough title.
 
