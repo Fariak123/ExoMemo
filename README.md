@@ -60,11 +60,8 @@ Notifications are cancelled when a task is completed or deleted and recreated wh
 | **AsyncStorage**                           | Persistent local task storage               |
 | **expo-notifications**                     | Local scheduled notifications               |
 | **expo-crypto**                            | UUID generation                             |
-| **lucide-react-native**                    | Icons                                       |
-| **react-native-safe-area-context**         | iOS/Android safe-area handling              |
+| **lucide-react-native**                    | Icons
 | **@react-native-community/datetimepicker** | Deadline date/time selection                |
-| **react-native-gesture-handler**           | Swipe interactions                          |
-| **react-native-reanimated**                | Gesture animation support                   |
 
 ### State Management
 
