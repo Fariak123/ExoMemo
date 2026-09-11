@@ -60,8 +60,7 @@ Notifications are cancelled when a task is completed or deleted and recreated wh
 | **AsyncStorage**                           | Persistent local task storage               |
 | **expo-notifications**                     | Local scheduled notifications               |
 | **expo-crypto**                            | UUID generation                             |
-| **lucide-react-native**                    | Icons
-| **@react-native-community/datetimepicker** | Deadline date/time selection                |
+| **lucide-react-native**                    | Icons                                       |
 
 ### State Management
 
@@ -89,8 +88,8 @@ Zustand manages:
 Clone the repository:
 
 ```bash
-git clone <https://github.com/Fariak123/ExoMemo.git>
-cd <ExoMemo>
+git clone https://github.com/Fariak123/ExoMemo.git
+cd ExoMemo
 ```
 
 Install dependencies:
@@ -135,27 +134,25 @@ npx expo-doctor
 
 ## Screenshots
 
-Screenshots will be added here.
-
 ### Agenda
 
-*Add screenshot here*
+![Agenda](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Agenda.jpg?raw=true)
 
 ### Add Task
 
-*Add screenshot here*
+![Add Task](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/AddTask.jpg?raw=true)
 
 ### Today
 
-*Add screenshot here*
+![Today](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Today.jpg?raw=true)
 
 ### History
 
-*Add screenshot here*
+![History](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/History.jpg?raw=true)
 
 ### Task Details
 
-*Add screenshot here*
+![Task Details](https://github.com/Fariak123/ExoMemo/blob/main/assets/images/Details.jpg?raw=true)
 
 ## License
 
