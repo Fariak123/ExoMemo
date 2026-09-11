@@ -111,9 +111,7 @@ export function TaskCard({
   now,
 }: TaskCardProps) {
   const status = getDeadlineStatus(task, now);
-
-  // Completed tasks should not show a deadline warning.
-  // Today specifically wants an ongoing task to have a red line.
+  
   const statusColor = task.completed
     ? colors.border
     : getStatusColor(status);

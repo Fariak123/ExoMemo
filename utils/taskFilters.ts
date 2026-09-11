@@ -37,10 +37,7 @@ export function getVisibleTasks({
 }: GetVisibleTasksParams): Task[] {
   let result = [...tasks];
 
-  // -------------------------
   // Screen filter
-  // -------------------------
-
   if (screen === 'agenda') {
     result = result.filter(
       (task) => !task.completed,
@@ -55,7 +52,6 @@ export function getVisibleTasks({
 
   if (screen === 'today') {
     result = result.filter((task) => {
-      // Completed task:
       // show only if it was completed today.
       if (task.completed) {
         if (!task.completedAt) {
@@ -68,7 +64,6 @@ export function getVisibleTasks({
         );
       }
 
-      // Ongoing task:
       // show only if its deadline is today.
       if (!task.hasDeadline || !task.deadline) {
         return false;
@@ -81,20 +76,14 @@ export function getVisibleTasks({
     });
   }
 
-  // -------------------------
   // Task / Plan
-  // -------------------------
-
   if (typeFilter !== 'all') {
     result = result.filter(
       (task) => task.type === typeFilter,
     );
   }
 
-  // -------------------------
   // Priority
-  // -------------------------
-
   if (priorityFilter !== 'all') {
     result = result.filter(
       (task) =>
@@ -102,10 +91,7 @@ export function getVisibleTasks({
     );
   }
 
-  // -------------------------
   // Search
-  // -------------------------
-
   const query = searchQuery
     .trim()
     .toLowerCase();
@@ -123,10 +109,7 @@ export function getVisibleTasks({
     });
   }
 
-  // -------------------------
   // Sorting
-  // -------------------------
-
   if (screen === 'agenda') {
     result.sort((a, b) => {
       if (

@@ -30,10 +30,7 @@ interface TaskStore {
 
   selectedTaskId: string | null;
 
-  // -------------------------
   // Tasks
-  // -------------------------
-
   addTask: (
     input: AddTaskInput,
   ) => Promise<string>;
@@ -59,18 +56,12 @@ interface TaskStore {
     id: string,
   ) => Task | undefined;
 
-  // -------------------------
   // Navigation
-  // -------------------------
-
   setScreen: (
     screen: Screen,
   ) => void;
 
-  // -------------------------
   // Filters
-  // -------------------------
-
   setTypeFilter: (
     filter: TypeFilter,
   ) => void;
@@ -83,10 +74,7 @@ interface TaskStore {
     value: boolean,
   ) => void;
 
-  // -------------------------
   // Search
-  // -------------------------
-
   setSearchOpen: (
     open: boolean,
   ) => void;
@@ -95,10 +83,7 @@ interface TaskStore {
     query: string,
   ) => void;
 
-  // -------------------------
   // Details
-  // -------------------------
-
   setSelectedTaskId: (
     id: string | null,
   ) => void;
@@ -124,10 +109,7 @@ export const useTaskStore =
 
         selectedTaskId: null,
 
-        // =================================
         // ADD TASK
-        // =================================
-
         addTask: async (input) => {
           const now =
             new Date().toISOString();
@@ -183,10 +165,7 @@ export const useTaskStore =
           return task.id;
         },
 
-        // =================================
         // UPDATE TASK
-        // =================================
-
         updateTask: async (
           id,
           data,
@@ -232,10 +211,7 @@ export const useTaskStore =
           }));
         },
 
-        // =================================
         // COMPLETE
-        // =================================
-
         completeTask: async (id) => {
           const task =
             get().tasks.find(
@@ -268,10 +244,7 @@ export const useTaskStore =
           }));
         },
 
-        // =================================
         // REOPEN
-        // =================================
-
         reopenTask: async (id) => {
           const task =
             get().tasks.find(
@@ -310,10 +283,7 @@ export const useTaskStore =
           }));
         },
 
-        // =================================
         // DELETE
-        // =================================
-
         deleteTask: async (id) => {
           await cancelTaskNotifications(
             id,
@@ -326,19 +296,13 @@ export const useTaskStore =
           }));
         },
 
-        // =================================
         // GET TASK
-        // =================================
-
         getTask: (id) =>
           get().tasks.find(
             (task) => task.id === id,
           ),
 
-        // =================================
         // NAVIGATION
-        // =================================
-
         setScreen: (screen) => {
           set({
             screen,
@@ -348,10 +312,7 @@ export const useTaskStore =
           });
         },
 
-        // =================================
         // FILTERS
-        // =================================
-
         setTypeFilter: (
           typeFilter,
         ) => {
@@ -370,10 +331,7 @@ export const useTaskStore =
           set({ reverseOrder });
         },
 
-        // =================================
         // SEARCH
-        // =================================
-
         setSearchOpen: (
           searchOpen,
         ) => {
@@ -394,10 +352,7 @@ export const useTaskStore =
           set({ searchQuery });
         },
 
-        // =================================
         // DETAILS
-        // =================================
-
         setSelectedTaskId: (
           selectedTaskId,
         ) => {

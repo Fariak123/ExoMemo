@@ -21,7 +21,7 @@ import {
 } from 'react-native';
 
 import { FilterModal } from '@/components/FilterModal';
-import { TaskCard } from '@/components/TaskCard';
+import { SwipeableTaskCard } from '@/components/SwipeableTaskCard';
 import { TaskModal } from '@/components/TaskModal';
 import { colors, layout } from '@/constants/theme';
 import { useCurrentTime } from '@/hooks/useCurrentTime';
@@ -482,8 +482,8 @@ export default function HomeScreen() {
                 </Text>
 
                 <View style={styles.taskList}>
-                  {group.tasks.map((task) => (
-                    <TaskCard
+                  {visibleTasks.map((task) => (
+                    <SwipeableTaskCard
                       key={task.id}
                       task={task}
                       now={now}
@@ -502,7 +502,7 @@ export default function HomeScreen() {
         ) : (
           <View style={styles.taskList}>
             {visibleTasks.map((task) => (
-              <TaskCard
+              <SwipeableTaskCard
                 key={task.id}
                 task={task}
                 now={now}
